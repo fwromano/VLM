@@ -2,6 +2,8 @@
 
 Real-time camera analysis using InternVL3-2B vision-language model with interactive chat interface.
 
+**🤖 ROS2 Integration Available!** Check out the [ROS branch](../../tree/ROS) for robotic applications.
+
 ## Features
 
 - **Real-time Video**: 30 FPS camera stream, zero processing lag

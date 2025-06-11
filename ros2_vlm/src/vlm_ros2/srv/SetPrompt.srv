@@ -1,0 +1,10 @@
+# Request: Set the default prompt for continuous analysis
+string prompt
+bool enable_continuous  # Enable/disable continuous analysis
+float32 analysis_rate   # Hz (analyses per second)
+---
+# Response
+bool success
+string current_prompt
+bool continuous_enabled
+float32 current_rate

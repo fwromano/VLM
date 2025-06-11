@@ -1,0 +1,10 @@
+# Request: Image to analyze and prompt
+sensor_msgs/Image image
+string prompt
+# Optional: Region of interest
+sensor_msgs/RegionOfInterest roi
+---
+# Response: Analysis result
+VLMAnalysis analysis
+bool success
+string error_message

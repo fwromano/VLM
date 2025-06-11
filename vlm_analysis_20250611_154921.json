@@ -1,0 +1,296 @@
+[
+  {
+    "timestamp": "2025-06-11T15:47:56.001168",
+    "prompt": "What do you see in this image?",
+    "text": "a man wearing headphones sitting at a desk",
+    "processing_time": 0.20792269706726074,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:47:58.080023",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting at a desk with a computer",
+    "processing_time": 0.06902456283569336,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:00.080122",
+    "prompt": "What do you see in this image?",
+    "text": "a man wearing headphones sitting at a desk",
+    "processing_time": 0.06836223602294922,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:02.080204",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting at a desk with a laptop and headphones",
+    "processing_time": 0.08315014839172363,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:04.180055",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair with a laptop",
+    "processing_time": 0.07444953918457031,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:06.180145",
+    "prompt": "What do you see in this image?",
+    "text": "a man wearing headphones",
+    "processing_time": 0.04840540885925293,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:08.280077",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting at a desk with his hands up",
+    "processing_time": 0.07529592514038086,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:10.379958",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair with his hands up",
+    "processing_time": 0.07579565048217773,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:12.380076",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair",
+    "processing_time": 0.05895209312438965,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:14.479844",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair",
+    "processing_time": 0.060932159423828125,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:16.479976",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair",
+    "processing_time": 0.05702066421508789,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:18.480073",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office with headphones on",
+    "processing_time": 0.07175493240356445,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:20.580055",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office with headphones on",
+    "processing_time": 0.07200813293457031,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:22.679858",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office with headphones on",
+    "processing_time": 0.06827092170715332,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:24.679894",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office with headphones on",
+    "processing_time": 0.07119870185852051,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:26.779770",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair holding a cell",
+    "processing_time": 0.07137465476989746,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:28.779954",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair holding a cell",
+    "processing_time": 0.06838369369506836,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:30.779966",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair holding a cell",
+    "processing_time": 0.07158613204956055,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:32.879920",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair holding a cell",
+    "processing_time": 0.06909370422363281,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:34.979915",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair holding a cell",
+    "processing_time": 0.07154345512390137,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:37.079812",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair",
+    "processing_time": 0.05566763877868652,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:39.079857",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair",
+    "processing_time": 0.058194875717163086,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:41.179866",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair",
+    "processing_time": 0.05567812919616699,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:43.279728",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair",
+    "processing_time": 0.059362173080444336,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:45.279956",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair",
+    "processing_time": 0.05592632293701172,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:47.280473",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair holding a piece of paper",
+    "processing_time": 0.09264826774597168,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:49.379745",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair holding a piece of paper",
+    "processing_time": 0.08106112480163574,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:51.479729",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office",
+    "processing_time": 0.052459716796875,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:53.579627",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office with a piece of paper",
+    "processing_time": 0.07710814476013184,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:55.579694",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office",
+    "processing_time": 0.05357694625854492,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:57.679713",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office holding a piece of paper",
+    "processing_time": 0.07888031005859375,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:48:59.779791",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office",
+    "processing_time": 0.05604910850524902,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:49:01.879959",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office drinking a bottle",
+    "processing_time": 0.06836652755737305,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:49:03.979552",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office drinking a beverage",
+    "processing_time": 0.06933212280273438,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:49:05.979691",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office holding a paper",
+    "processing_time": 0.06885838508605957,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:49:08.079605",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair with his hands up",
+    "processing_time": 0.08229684829711914,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:49:10.179654",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting at a desk with his hands up",
+    "processing_time": 0.0741891860961914,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:49:12.179722",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair with his hands up",
+    "processing_time": 0.07606387138366699,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:49:14.279541",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair with his arms crossed",
+    "processing_time": 0.07605433464050293,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:49:16.379567",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting in an office chair with his mouth open",
+    "processing_time": 0.07955646514892578,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:49:18.479446",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting at a desk with a computer",
+    "processing_time": 0.0659172534942627,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:49:20.479663",
+    "prompt": "What do you see in this image?",
+    "text": "a man sitting at a desk with a laptop",
+    "processing_time": 0.07019472122192383,
+    "model_name": "InternVL3-2B-hf"
+  }
+]

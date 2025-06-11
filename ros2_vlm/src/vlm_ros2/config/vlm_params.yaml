@@ -1,0 +1,27 @@
+vlm:
+  ros__parameters:
+    # Model configuration
+    model_name: "InternVL3-2B-hf"
+    device: "cuda"  # cuda or cpu
+    
+    # Topic configuration
+    image_topic: "/camera/image_raw"
+    
+    # Analysis configuration
+    continuous_analysis: true
+    analysis_rate: 0.5  # Hz
+    default_prompt: "What do you see in this image?"
+    
+    # Performance configuration
+    queue_size: 10
+    
+    # Model inference settings
+    max_new_tokens: 256
+    temperature: 0.7
+    
+    # ROI settings (optional)
+    use_roi: false
+    roi_x_offset: 0
+    roi_y_offset: 0
+    roi_width: 640
+    roi_height: 480

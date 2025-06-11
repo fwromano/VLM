@@ -29,7 +29,7 @@ try:
     import cv2
     import tkinter as tk
     from tkinter import ttk, scrolledtext, messagebox
-    from transformers import pipeline
+    from transformers import Gemma3ForConditionalGeneration, AutoProcessor
     from PIL import Image, ImageTk
     import numpy as np
 except ImportError as e:
@@ -54,24 +54,30 @@ class VLMProcessor:
     
     def __init__(self, gpu_available=False):
         self.gpu_available = gpu_available
-        self.device_str = "cuda" if gpu_available else "cpu"
-        self.pipe = None
+        self.device = torch.device("cuda" if gpu_available else "cpu")
+        self.model = None
+        self.processor = None
         self.is_loaded = False
         
     def load_model(self):
         """Load the VLM model"""
         try:
-            print(f"Loading InternVL3-2B model on {self.device_str.upper()}...")
+            print(f"Loading Gemma 3 4B model on {self.device}...")
             
-            self.pipe = pipeline(
-                "image-text-to-text",
-                model="OpenGVLab/InternVL3-2B-hf",
-                trust_remote_code=True,
-                device=self.device_str
+            # Load model and processor
+            self.model = Gemma3ForConditionalGeneration.from_pretrained(
+                "google/gemma-3-4b-it",
+                torch_dtype=torch.bfloat16 if self.gpu_available else torch.float32,
+                device_map="auto" if self.gpu_available else None
             )
             
+            self.processor = AutoProcessor.from_pretrained("google/gemma-3-4b-it")
+            
+            if not self.gpu_available:
+                self.model = self.model.to(self.device)
+            
             self.is_loaded = True
-            print(f"Model loaded on {self.device_str}")
+            print(f"Model loaded on {self.device}")
             return True
             
         except Exception as e:
@@ -90,7 +96,7 @@ class VLMProcessor:
             
             pil_image = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
             
-            # Create message format for pipeline
+            # Create message format for Gemma 3
             messages = [{
                 "role": "user",
                 "content": [
@@ -99,14 +105,31 @@ class VLMProcessor:
                 ]
             }]
             
-            # Generate response
-            outputs = self.pipe(
-                text=messages,
-                max_new_tokens=150,
-                return_full_text=False
-            )
+            # Apply chat template and process inputs
+            text = self.processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+            inputs = self.processor(text=text, images=[pil_image], return_tensors="pt")
             
-            return outputs[0]["generated_text"]
+            # Move inputs to device
+            inputs = {k: v.to(self.device) for k, v in inputs.items()}
+            
+            # Generate response
+            with torch.no_grad():
+                outputs = self.model.generate(
+                    **inputs,
+                    max_new_tokens=150,
+                    do_sample=False,
+                    temperature=0.1,
+                    pad_token_id=self.processor.tokenizer.eos_token_id
+                )
+            
+            # Decode output
+            response = self.processor.decode(outputs[0], skip_special_tokens=True)
+            
+            # Extract only the generated part (remove input)
+            input_length = len(self.processor.decode(inputs["input_ids"][0], skip_special_tokens=True))
+            generated_text = response[input_length:].strip()
+            
+            return generated_text
             
         except Exception as e:
             return f"Analysis error: {str(e)[:100]}"
@@ -434,7 +457,7 @@ class VLMChatApp:
             pass
         
         # Update status
-        device_text = f"{'GPU' if self.gpu_available else 'CPU'}: InternVL3-2B"
+        device_text = f"{'GPU' if self.gpu_available else 'CPU'}: Gemma-3-4B"
         queue_size = self.request_queue.qsize()
         status_text = f"{device_text} | Queue: {queue_size}"
         

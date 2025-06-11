@@ -1,0 +1,317 @@
+[
+  {
+    "timestamp": "2025-06-11T15:51:31.319225",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting at a desk with a computer",
+    "processing_time": 0.2034471035003662,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:32.394588",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting at a desk with a computer",
+    "processing_time": 0.0659482479095459,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:33.394613",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair with his hands up",
+    "processing_time": 0.0754384994506836,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:34.394691",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting at a desk with a computer",
+    "processing_time": 0.06618309020996094,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:35.394744",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting at a desk with a computer",
+    "processing_time": 0.06311941146850586,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:36.494690",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair with a computer",
+    "processing_time": 0.07276463508605957,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:37.594756",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting at a desk with a computer",
+    "processing_time": 0.0660393238067627,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:38.594909",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office with headphones on",
+    "processing_time": 0.06743121147155762,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:39.694754",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office wearing headphones",
+    "processing_time": 0.0699913501739502,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:40.694817",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office wearing headphones",
+    "processing_time": 0.06592249870300293,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:41.794796",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office talking on a cell",
+    "processing_time": 0.07253646850585938,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:42.794962",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair with his hair in his hands",
+    "processing_time": 0.08519983291625977,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:43.894826",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair holding a cell",
+    "processing_time": 0.07558536529541016,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:44.995282",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair holding a camera",
+    "processing_time": 0.06980776786804199,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:46.094798",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair playing a video game",
+    "processing_time": 0.07848930358886719,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:47.194686",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair holding a steering wheel",
+    "processing_time": 0.07865071296691895,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:48.194726",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair holding a steering wheel",
+    "processing_time": 0.07246947288513184,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:49.294874",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair holding a steering wheel",
+    "processing_time": 0.07618045806884766,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:50.394579",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair",
+    "processing_time": 0.06016111373901367,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:51.394668",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair with headphones on",
+    "processing_time": 0.07240843772888184,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:52.494648",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office talking on a cell",
+    "processing_time": 0.07145142555236816,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:53.594545",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair with headphones on",
+    "processing_time": 0.0763239860534668,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:54.594605",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair",
+    "processing_time": 0.057662010192871094,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:55.694782",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair with a cell in his hand",
+    "processing_time": 0.08455538749694824,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:56.794753",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair",
+    "processing_time": 0.05948758125305176,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:57.894502",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair",
+    "processing_time": 0.05480170249938965,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:58.894610",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office with a cell",
+    "processing_time": 0.06709456443786621,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:51:59.894780",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office with a cell",
+    "processing_time": 0.06923484802246094,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:52:00.994659",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair with headphones on",
+    "processing_time": 0.07426977157592773,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:52:02.094648",
+    "prompt": "Describe what you see in detail",
+    "text": "a man wearing headphones",
+    "processing_time": 0.0478520393371582,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:52:03.194491",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office with a keyboard",
+    "processing_time": 0.06761693954467773,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:52:04.194816",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office with a keyboard",
+    "processing_time": 0.06409573554992676,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:52:05.294590",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office with a computer",
+    "processing_time": 0.06954026222229004,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:52:06.394296",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair with a laptop",
+    "processing_time": 0.07279801368713379,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:52:07.394511",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair with headphones on",
+    "processing_time": 0.07386517524719238,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:52:08.494629",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair with headphones on",
+    "processing_time": 0.07803487777709961,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:52:09.594472",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair",
+    "processing_time": 0.0581974983215332,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:52:10.594861",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair holding a cell",
+    "processing_time": 0.06859636306762695,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:52:11.694546",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office",
+    "processing_time": 0.05444979667663574,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:52:12.694628",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office",
+    "processing_time": 0.05362057685852051,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:52:13.794339",
+    "prompt": "Describe what you see in detail",
+    "text": "a man wearing a pair of headphones",
+    "processing_time": 0.06014823913574219,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:52:14.794350",
+    "prompt": "Describe what you see in detail",
+    "text": "a man wearing headphones",
+    "processing_time": 0.04820060729980469,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:52:15.894419",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting in an office chair with headphones on",
+    "processing_time": 0.07718682289123535,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:52:16.994132",
+    "prompt": "Describe what you see in detail",
+    "text": "a man wearing headphones",
+    "processing_time": 0.04727935791015625,
+    "model_name": "InternVL3-2B-hf"
+  },
+  {
+    "timestamp": "2025-06-11T15:52:17.994436",
+    "prompt": "Describe what you see in detail",
+    "text": "a man sitting at a desk with a computer",
+    "processing_time": 0.06849026679992676,
+    "model_name": "InternVL3-2B-hf"
+  }
+]
