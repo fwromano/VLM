@@ -1,47 +1,178 @@
 # VLM Projects
 
-Vision-Language Model (VLM) implementations for different use cases.
+Vision-Language Model (VLM) implementations using Google Gemma 3 4B for real-time camera analysis.
 
-## Projects
+## What This Repository Contains
 
-### 1. [Standalone VLM Chat](./standalone/)
-A simple, clean video chat interface with VLM integration.
-- Real-time camera feed
-- Interactive chat interface
-- No ROS dependencies
-- Quick setup and usage
+This repository provides two different approaches to using vision-language models with live camera feeds:
 
-**Quick Start:**
+1. **Standalone VLM Chat** - Simple, no-dependencies approach
+2. **ROS2 VLM Integration** - Full robotics integration
+
+## Project Structure
+
+```
+VLM/
+├── README.md              # This file
+├── CLAUDE.md             # Development notes
+├── standalone/           # Simple VLM chat (no ROS2)
+│   ├── README.md
+│   ├── setup.sh
+│   ├── run.sh
+│   └── vlm_standalone.py
+└── ros2_vlm/            # Full ROS2 integration
+    ├── README.md        # Detailed architecture guide
+    ├── demo.sh          # Main launcher
+    ├── setup/           # Setup and testing
+    ├── demos/           # Demo applications
+    └── nodes/           # ROS2 nodes and processing
+```
+
+## Quick Start Guide
+
+### For Simple Testing (Recommended)
+
+If you just want to test VLM with your camera:
+
+```bash
+cd ros2_vlm
+sudo ./setup/install_ros2_packages.sh
+./demo.sh
+# Choose option 1 (Live Demo)
+```
+
+This gives you a single window with live camera + VLM analysis overlay.
+
+### For Robotics Development
+
+If you're building ROS2 robotics applications:
+
+```bash
+cd ros2_vlm  
+sudo ./setup/install_ros2_packages.sh
+./demo.sh
+# Choose option 2 (ROS2 Demo)
+```
+
+This provides full ROS2 topics/services integration.
+
+### For Minimal Dependencies
+
+If you want the simplest possible setup:
+
 ```bash
 cd standalone
 ./setup.sh
 ./run.sh
 ```
 
-### 2. [ROS2 VLM Integration](./ros2_vlm/)
-Complete ROS2 package for robotic VLM applications.
-- ROS2 services and actions
-- Bag file support
-- Multi-robot integration
-- Professional robotics use
+This is a basic VLM chat without ROS2 dependencies.
 
-**Quick Start:**
-```bash
-cd ros2_vlm
-./setup.sh
-./run_ros2_camera_robust.sh
+## What Each Project Does
+
+### Standalone VLM Chat (`standalone/`)
+
+**Purpose:** Simple VLM chat interface
+**Use case:** Quick testing, minimal dependencies
+**Architecture:** Single Python process
+
+**Features:**
+- Clean video chat interface
+- Text input for custom questions  
+- Chat history with timestamps
+- No ROS2 complexity
+
+### ROS2 VLM Integration (`ros2_vlm/`)
+
+**Purpose:** Production-ready VLM for robotics
+**Use case:** Robot navigation, scene understanding, multi-node systems
+**Architecture:** Hybrid system (ROS2 + conda environments)
+
+**Features:**
+- Two demo modes (integrated + ROS2)
+- Real-time camera analysis
+- ROS2 topic/service integration
+- Keyboard shortcuts for quick prompts
+- Full model output display
+- GPU optimization for RTX 5000 Ada
+
+## Architecture Comparison
+
+### Standalone Approach
 ```
+Camera → VLM Processing → Chat Interface
+(Single environment, simple setup)
+```
+
+### ROS2 Hybrid Approach
+```
+Camera → ROS2 Node → VLM Subprocess → ROS2 Topics
+(Environment isolation, production-ready)
+```
+
+## Key Technical Innovations
+
+### Environment Isolation Solution
+
+**Problem:** ROS2 Jazzy requires Python 3.12, but VLM models work best in conda Python 3.10
+
+**Solution:** Hybrid architecture where:
+- ROS2 nodes run in system Python 3.12
+- VLM processing runs in conda Python 3.10
+- Subprocess communication bridges environments
+
+### GPU Memory Optimization
+
+**Problem:** Gemma 3 4B model has complex device mapping requirements
+
+**Solution:** Smart device mapping that:
+- Detects GPU memory (15.7GB RTX 5000 Ada)
+- Uses explicit device placement for large GPUs
+- Falls back to auto-mapping for smaller GPUs
+- Handles CPU fallback gracefully
 
 ## Requirements
 
-- Ubuntu 22.04 or 24.04
-- Python 3.10+
-- NVIDIA GPU (optional)
-- Webcam
+**System:**
+- Ubuntu 22.04/24.04
+- USB camera at `/dev/video0`
+- 8GB+ RAM (16GB+ recommended)
 
-## Choose Your Project
+**GPU (Optional but Recommended):**
+- NVIDIA GPU with 8GB+ VRAM
+- RTX 5000 Ada (16GB) for optimal performance
+- CPU fallback available
 
-- **For simple VLM chat**: Use the [standalone](./standalone/) version
-- **For robotics/ROS2**: Use the [ros2_vlm](./ros2_vlm/) version
+**Authentication:**
+- HuggingFace account
+- Access to google/gemma-3-4b-it model
+- HuggingFace CLI login
 
-Each project is self-contained with its own README, setup scripts, and dependencies.
+## Performance Expectations
+
+**With RTX 5000 Ada (16GB):**
+- Model loading: 3-5 seconds
+- Analysis: 1-2 seconds per frame
+- Memory usage: 8-10GB VRAM
+
+**CPU Fallback:**
+- Model loading: 10-15 seconds  
+- Analysis: 3-5 seconds per frame
+- Memory usage: 6-8GB RAM
+
+## Choose Your Path
+
+| Use Case | Project | Setup Complexity | Features |
+|----------|---------|------------------|----------|
+| **Quick Testing** | `ros2_vlm/` (Option 1) | Medium | Live camera + overlay |
+| **Robotics Development** | `ros2_vlm/` (Option 2) | Medium | Full ROS2 integration |
+| **Minimal Setup** | `standalone/` | Low | Basic VLM chat |
+
+## Getting Help
+
+1. **Start with:** `ros2_vlm/` project for most use cases
+2. **Read:** The detailed `ros2_vlm/README.md` for architecture understanding
+3. **Test first:** Use the test script to verify VLM functionality
+4. **Troubleshoot:** Check camera, GPU, and HuggingFace authentication
+
+Each project directory contains its own detailed README with specific setup instructions and troubleshooting guides.

@@ -5,12 +5,12 @@ echo "=============================="
 
 # Check if VLM conda environment exists
 if [ ! -d "/home/fwromano/anaconda3/envs/vlm" ]; then
-    echo "❌ VLM conda environment not found"
+    echo "ERROR: VLM conda environment not found"
     echo "Create it with: cd ../standalone && ./setup.sh"
     exit 1
 fi
 
-echo "✓ VLM conda environment found"
+echo "OK: VLM conda environment found"
 
 # Create a simple test image
 echo ""
@@ -34,11 +34,11 @@ img_array[mask] = [255, 255, 255]  # White circle
 # Save test image
 img = Image.fromarray(img_array)
 img.save('/tmp/test_vlm_image.jpg')
-print('✓ Test image created at /tmp/test_vlm_image.jpg')
+print('OK: Test image created at /tmp/test_vlm_image.jpg')
 "
 
 if [ $? -ne 0 ]; then
-    echo "❌ Failed to create test image"
+    echo "ERROR: Failed to create test image"
     exit 1
 fi
 
@@ -47,14 +47,14 @@ echo ""
 echo "Testing VLM processor..."
 echo "This may take a moment to load the model..."
 
-/home/fwromano/anaconda3/envs/vlm/bin/python vlm_processor.py /tmp/test_vlm_image.jpg "What shapes and colors do you see in this image?"
+cd .. && /home/fwromano/anaconda3/envs/vlm/bin/python nodes/vlm_processor.py /tmp/test_vlm_image.jpg "What shapes and colors do you see in this image?"
 
 if [ $? -eq 0 ]; then
     echo ""
-    echo "✓ VLM processor working!"
+    echo "SUCCESS: VLM processor working!"
 else
     echo ""
-    echo "❌ VLM processor failed"
+    echo "ERROR: VLM processor failed"
     echo "Check your HuggingFace authentication and model access"
 fi
 

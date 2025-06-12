@@ -77,7 +77,7 @@ class HybridVLMNode(Node):
             result_msg.data = result
             self.analysis_pub.publish(result_msg)
             
-            self.get_logger().info(f"VLM result: {result[:100]}...")
+            self.get_logger().info(f"VLM result: {result}")
             
         except Exception as e:
             self.get_logger().error(f"Image processing failed: {e}")

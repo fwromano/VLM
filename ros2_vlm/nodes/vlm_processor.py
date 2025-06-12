@@ -31,15 +31,36 @@ def load_vlm_model():
     
     print(f"Loading Gemma 3 4B on {device}...", file=sys.stderr)
     
+    if gpu_available:
+        # Clear GPU cache first
+        torch.cuda.empty_cache()
+        
+        # Check GPU memory
+        gpu_memory = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+        print(f"GPU memory: {gpu_memory:.1f}GB", file=sys.stderr)
+        
+        # For RTX 5000 Ada (16GB), use explicit device mapping
+        if gpu_memory >= 15:  # Use full GPU for 16GB+ cards
+            device_map = {"": 0}  # Put entire model on GPU 0
+            torch_dtype = torch.bfloat16
+        else:  # Fallback for smaller GPUs
+            device_map = "auto"
+            torch_dtype = torch.float16
+    else:
+        device_map = None
+        torch_dtype = torch.float32
+    
     # Load model and processor
     model = Gemma3ForConditionalGeneration.from_pretrained(
         "google/gemma-3-4b-it",
-        torch_dtype=torch.bfloat16 if gpu_available else torch.float32,
-        device_map="auto" if gpu_available else None
+        torch_dtype=torch_dtype,
+        device_map=device_map,
+        low_cpu_mem_usage=True
     )
     
     processor = AutoProcessor.from_pretrained("google/gemma-3-4b-it")
     
+    # For CPU fallback, move model explicitly
     if not gpu_available:
         model = model.to(device)
     

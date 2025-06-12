@@ -19,7 +19,7 @@ clean_conda_env() {
     unset CONDA_DEFAULT_ENV
     unset CONDA_PREFIX
     
-    echo "✓ Environment cleaned"
+    echo "OK: Environment cleaned"
 }
 
 # Function to check ROS2 is working
@@ -27,7 +27,7 @@ test_ros2() {
     echo "Testing ROS2..."
     /usr/bin/python3 -c "
 import rclpy
-print('✓ ROS2 working')
+print('OK: ROS2 working')
 " 2>/dev/null
     return $?
 }
@@ -36,10 +36,10 @@ print('✓ ROS2 working')
 test_vlm_conda() {
     echo "Testing VLM conda environment..."
     if [ -d "/home/fwromano/anaconda3/envs/vlm" ]; then
-        echo "✓ VLM conda environment found"
+        echo "OK: VLM conda environment found"
         return 0
     else
-        echo "❌ VLM conda environment not found"
+        echo "ERROR: VLM conda environment not found"
         echo "Create it with: cd ../standalone && ./setup.sh"
         return 1
     fi
@@ -58,7 +58,7 @@ main() {
     echo ""
     echo "Step 3: Testing ROS2..."
     if ! test_ros2; then
-        echo "❌ ROS2 not working. Run: sudo ./install_ros2_packages.sh"
+        echo "ERROR: ROS2 not working. Run: sudo ./install_ros2_packages.sh"
         exit 1
     fi
     
@@ -75,6 +75,7 @@ main() {
     echo ""
     
     # Run the hybrid VLM node
+    cd "$(dirname "${BASH_SOURCE[0]}")"
     /usr/bin/python3 hybrid_vlm_node.py
 }
 

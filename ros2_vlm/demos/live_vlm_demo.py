@@ -18,7 +18,7 @@ from tkinter import ttk
 
 class LiveVLMDemo:
     def __init__(self):
-        print("🎥 Live VLM Demo Starting...")
+        print("Live VLM Demo Starting...")
         
         # Camera setup
         self.cap = None
@@ -26,7 +26,7 @@ class LiveVLMDemo:
         
         # VLM setup
         self.conda_env_path = "/home/fwromano/anaconda3/envs/vlm"
-        self.vlm_script_path = str(Path(__file__).parent / "vlm_processor.py")
+        self.vlm_script_path = str(Path(__file__).parent.parent / "nodes" / "vlm_processor.py")
         
         # Analysis state
         self.current_prompt = "What do you see in this image?"
@@ -51,15 +51,15 @@ class LiveVLMDemo:
             '9': "What time of day does this look like?"
         }
         
-        print("✓ Demo initialized")
+        print("Demo initialized")
     
     def setup_camera(self):
         """Initialize camera"""
-        print("📹 Setting up camera...")
+        print("Setting up camera...")
         self.cap = cv2.VideoCapture(0)
         
         if not self.cap.isOpened():
-            print("❌ Camera not found!")
+            print("ERROR: Camera not found!")
             return False
         
         # Camera settings for good performance
@@ -69,14 +69,14 @@ class LiveVLMDemo:
         
         width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        print(f"✓ Camera ready: {width}x{height}")
+        print(f"Camera ready: {width}x{height}")
         
         self.camera_running = True
         return True
     
     def vlm_worker(self):
         """Background thread for VLM processing"""
-        print("🤖 VLM worker started")
+        print("VLM worker started")
         
         while self.camera_running:
             try:
@@ -101,7 +101,7 @@ class LiveVLMDemo:
                 print(f"VLM worker error: {e}")
                 continue
         
-        print("🤖 VLM worker stopped")
+        print("VLM worker stopped")
     
     def process_with_vlm(self, image, prompt):
         """Process image with VLM using conda environment"""
@@ -119,12 +119,23 @@ class LiveVLMDemo:
                 prompt
             ]
             
+            # Set environment for VLM processing
+            vlm_env = os.environ.copy()
+            vlm_env.update({
+                "CUDA_VISIBLE_DEVICES": "0",
+                "CUDA_HOME": "/usr",
+                "CUDA_ROOT": "/usr",
+                "CUDA_PATH": "/usr",
+                "LD_LIBRARY_PATH": "/usr/lib/x86_64-linux-gnu"
+            })
+            
             result = subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=10,  # Shorter timeout for responsiveness
-                env={**os.environ, "CUDA_VISIBLE_DEVICES": "0"}
+                timeout=15,  # Longer timeout for model loading
+                env=vlm_env,
+                cwd=os.path.dirname(__file__)
             )
             
             # Clean up temp file
@@ -133,7 +144,10 @@ class LiveVLMDemo:
             if result.returncode == 0:
                 return result.stdout.strip()
             else:
-                return f"Error: {result.stderr[:100]}"
+                error_msg = result.stderr.strip() if result.stderr else "Unknown error"
+                print(f"VLM Error (stderr): {error_msg}")
+                print(f"VLM Error (stdout): {result.stdout}")
+                return f"VLM Error: {error_msg[:100]}"
                 
         except Exception as e:
             return f"Error: {str(e)[:100]}"
@@ -233,16 +247,17 @@ class LiveVLMDemo:
         vlm_thread = threading.Thread(target=self.vlm_worker, daemon=True)
         vlm_thread.start()
         
-        print("\n🎥 Live VLM Demo Running!")
+        print("\nLive VLM Demo Running!")
         print("=" * 40)
-        print("📱 Press 'H' for help")
-        print("🔢 Press 1-9 for quick prompts")
-        print("❌ Press 'Q' or ESC to quit")
+        print("Press 'H' for help")
+        print("Press 1-9 for quick prompts")
+        print("Press 'Q' or ESC to quit")
         print("=" * 40)
         
         show_help = False
         last_analysis_time = 0
         analysis_interval = 2.0  # Analyze every 2 seconds
+        first_analysis = True
         
         try:
             while True:
@@ -257,17 +272,23 @@ class LiveVLMDemo:
                         self.last_analysis = result
                         self.analysis_time = proc_time
                         self.processing = False
-                        print(f"🤖 Analysis: {result[:50]}...")
+                        print(f"Analysis: {result}")
                 except queue.Empty:
                     pass
                 
-                # Trigger analysis periodically
+                # Trigger analysis periodically (or immediately on first run)
                 current_time = time.time()
-                if (current_time - last_analysis_time) > analysis_interval and not self.processing:
+                should_analyze = (first_analysis or 
+                                (current_time - last_analysis_time) > analysis_interval) and not self.processing
+                
+                if should_analyze:
                     try:
                         self.analysis_queue.put_nowait((frame.copy(), self.current_prompt))
                         self.processing = True
                         last_analysis_time = current_time
+                        if first_analysis:
+                            first_analysis = False
+                            print("Starting first analysis (model loading may take a moment)...")
                     except queue.Full:
                         pass  # Skip if queue is full
                 
@@ -297,7 +318,7 @@ class LiveVLMDemo:
                             pass
                 elif chr(key) in self.prompts:  # Number key prompts
                     self.current_prompt = self.prompts[chr(key)]
-                    print(f"🎯 Prompt changed to: {self.current_prompt}")
+                    print(f"Prompt changed to: {self.current_prompt}")
                     # Trigger immediate analysis with new prompt
                     if not self.processing:
                         try:
@@ -315,7 +336,7 @@ class LiveVLMDemo:
     
     def cleanup(self):
         """Clean up resources"""
-        print("\n🧹 Cleaning up...")
+        print("\nCleaning up...")
         
         self.camera_running = False
         
@@ -329,7 +350,7 @@ class LiveVLMDemo:
             self.cap.release()
         
         cv2.destroyAllWindows()
-        print("✅ Demo stopped")
+        print("OK Demo stopped")
 
 def main():
     # Clean environment (remove conda interference)
