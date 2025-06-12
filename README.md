@@ -1,182 +1,179 @@
-# VLM Video Chat
+# VLM Projects
 
-Real-time camera analysis using InternVL3-2B vision-language model with interactive chat interface.
+Vision-Language Model (VLM) implementations using Google Gemma 3 4B for real-time camera analysis.
 
-## Features
+## What This Repository Contains
 
-- **Real-time Video**: 30 FPS camera stream, zero processing lag
-- **Interactive Chat**: Custom text input for image questions
-- **AI Vision Analysis**: InternVL3-2B model (2B parameters)
-- **Multi-threaded**: Background AI processing, responsive GUI
-- **GPU Accelerated**: RTX 5000 Ada optimized (16GB VRAM)
-- **Modern Interface**: Video chat style with timestamps
-- **Quick Prompts**: Pre-defined question buttons
-- **Performance Metrics**: Processing time display
+This repository provides two different approaches to using vision-language models with live camera feeds:
 
-## Interface Layout
-
-```
-┌─────────────────────────────────────────────────────┐
-│                VLM Video Chat                       │
-├──────────────────────┬──────────────────────────────┤
-│   Camera Feed        │      Chat Interface          │
-│                      │                              │
-│  [Live Video Stream] │   Chat History:              │
-│                      │   [12:34:56] You: What do    │
-│  GPU: InternVL3-2B   │   you see?                   │
-│  Queue: 0/1          │   [12:34:57] VLM: I can see  │
-│                      │   a desk with a computer...  │
-│                      │                              │
-│                      │   Type your question:        │
-│                      │   [Text Input Box]           │
-│                      │   [Send] [Quick Prompts...]  │
-└──────────────────────┴──────────────────────────────┘
-```
-
-## Quick Start
-
-### 1. Setup
-
-```bash
-cd VLM
-chmod +x setup.sh
-./setup.sh
-```
-
-### 2. Launch
-
-```bash
-./run_vlm.sh
-```
-
-Interface opens with live camera feed (left) and chat panel (right).
-
-## Usage
-
-1. Type questions in text input
-2. Press Enter to send for AI analysis
-3. View responses in chat history with timestamps
-4. Use quick prompt buttons for common questions
-
-### Controls
-- **Enter**: Send message
-- **Ctrl+Enter**: New line in input
-- **Close Window**: Shutdown camera and model
-
-### Sample Questions
-- "What's on my desk?"
-- "Count people in room"
-- "Describe lighting conditions"
-- "Identify safety hazards"
-- "What colors are visible?"
-
-## Technical Requirements
-
-### Hardware
-- **Recommended**: RTX 5000 Ada (16GB VRAM)
-- **Minimum**: CUDA GPU (4GB+ VRAM)
-- **Fallback**: CPU mode
-- **Camera**: USB/built-in webcam
-
-### Software
-- Linux (Ubuntu tested)
-- Python 3.8+
-- CUDA 12.1+
-- Conda
-
-### Dependencies (auto-installed)
-- PyTorch + CUDA
-- Transformers
-- OpenCV
-- Tkinter
-- InternVL3-2B model
+1. **VLM Video Chat** - Optimized video chat interface
+2. **ROS2 VLM Integration** - Full robotics integration
 
 ## Project Structure
 
 ```
 VLM/
-├── README.md
-├── vlm.py
-├── run_vlm.sh
-├── setup.sh
-├── requirements.txt
-└── CLAUDE.md
+├── README.md              # This file
+├── CLAUDE.md             # Development notes
+├── vlm_video_chat/      # Optimized video chat interface
+│   ├── README.md
+│   ├── setup.sh
+│   ├── run.sh
+│   └── vlm_standalone.py
+└── ros2_vlm/            # Full ROS2 integration
+    ├── README.md        # Detailed architecture guide
+    ├── demo.sh          # Main launcher
+    ├── setup/           # Setup and testing
+    ├── demos/           # Demo applications
+    └── nodes/           # ROS2 nodes and processing
 ```
 
-## Configuration
+## Quick Start Guide
 
-Auto-detects hardware:
-- **GPU**: InternVL3-2B, bfloat16 precision
-- **CPU**: InternVL3-2B, float32 precision
+### For Simple Testing (Recommended)
 
-### Model
-- OpenGVLab/InternVL3-2B-hf (2B parameters)
-- Capabilities: Image understanding, object detection, scene description
-- Language: English
-- Max response: 150 tokens
-
-## Troubleshooting
-
-### GPU Not Detected
-```bash
-nvidia-smi                    # Verify drivers
-nvcc --version               # Check CUDA
-conda activate vlm
-pip uninstall torch torchvision torchaudio -y
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-```
-
-### Camera Issues
-```bash
-ls /dev/video*               # List cameras
-python -c "import cv2; print('OK' if cv2.VideoCapture(0).isOpened() else 'Failed')"
-```
-
-### Model Issues
-- First run: 4GB model download
-- Out of memory: Use CPU mode
-
-### GUI Issues
-```bash
-sudo apt-get install python3-tk    # Ubuntu/Debian
-```
-
-## Manual Installation
+If you just want to test VLM with your camera:
 
 ```bash
-conda create -n vlm python=3.10 -y
-conda activate vlm
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-pip install transformers>=4.37.0 opencv-python pillow accelerate
-sudo apt-get install python3-tk
-python vlm.py
+cd ros2_vlm
+sudo ./setup/install_ros2_packages.sh
+./demo.sh
+# Choose option 1 (Live Demo)
 ```
 
-## Performance
+This gives you a single window with live camera + VLM analysis overlay.
 
-### GPU Mode (RTX 5000 Ada)
-- Model loading: 10-15s (first run)
-- Analysis speed: 2-4s per question
-- Video FPS: 30 (unaffected)
-- Memory: 8GB VRAM
+### For Robotics Development
 
-### CPU Mode
-- Model loading: 30-60s (first run) 
-- Analysis speed: 15-30s per question
-- Video FPS: 30 (unaffected)
-- Memory: 4GB RAM
+If you're building ROS2 robotics applications:
 
-## Dependencies
+```bash
+cd ros2_vlm  
+sudo ./setup/install_ros2_packages.sh
+./demo.sh
+# Choose option 2 (ROS2 Demo)
+```
 
-- InternVL3 (OpenGVLab)
-- HuggingFace Transformers
-- OpenCV
-- Tkinter
+This provides full ROS2 topics/services integration.
 
-## License
+### For Minimal Dependencies
 
-Educational and research use.
+If you want the simplest possible setup:
 
----
+```bash
+cd vlm_video_chat
+./setup.sh
+./run.sh
+```
 
-Run `./run_vlm.sh` to start.
+This is an optimized VLM video chat with performance enhancements.
+
+## What Each Project Does
+
+### VLM Video Chat (`vlm_video_chat/`)
+
+**Purpose:** Optimized VLM video chat interface
+**Use case:** Quick testing, demonstrations, interactive VLM usage
+**Architecture:** Single Python process with performance optimizations
+
+**Features:**
+- Clean video chat interface with real-time camera
+- 10 quick prompt buttons with tooltips
+- Optimized for RTX 5000 Ada (16GB GPU)
+- Performance tuned: 512px inputs, KV cache, explicit device mapping
+- Chat history with timestamps and processing times
+
+### ROS2 VLM Integration (`ros2_vlm/`)
+
+**Purpose:** Production-ready VLM for robotics
+**Use case:** Robot navigation, scene understanding, multi-node systems
+**Architecture:** Hybrid system (ROS2 + conda environments)
+
+**Features:**
+- Two demo modes (integrated + ROS2)
+- Real-time camera analysis
+- ROS2 topic/service integration
+- Keyboard shortcuts for quick prompts
+- Full model output display
+- GPU optimization for RTX 5000 Ada
+
+## Architecture Comparison
+
+### Standalone Approach
+```
+Camera → VLM Processing → Chat Interface
+(Single environment, simple setup)
+```
+
+### ROS2 Hybrid Approach
+```
+Camera → ROS2 Node → VLM Subprocess → ROS2 Topics
+(Environment isolation, production-ready)
+```
+
+## Key Technical Innovations
+
+### Environment Isolation Solution
+
+**Problem:** ROS2 Jazzy requires Python 3.12, but VLM models work best in conda Python 3.10
+
+**Solution:** Hybrid architecture where:
+- ROS2 nodes run in system Python 3.12
+- VLM processing runs in conda Python 3.10
+- Subprocess communication bridges environments
+
+### GPU Memory Optimization
+
+**Problem:** Gemma 3 4B model has complex device mapping requirements
+
+**Solution:** Smart device mapping that:
+- Detects GPU memory (15.7GB RTX 5000 Ada)
+- Uses explicit device placement for large GPUs
+- Falls back to auto-mapping for smaller GPUs
+- Handles CPU fallback gracefully
+
+## Requirements
+
+**System:**
+- Ubuntu 22.04/24.04
+- USB camera at `/dev/video0`
+- 8GB+ RAM (16GB+ recommended)
+
+**GPU (Optional but Recommended):**
+- NVIDIA GPU with 8GB+ VRAM
+- RTX 5000 Ada (16GB) for optimal performance
+- CPU fallback available
+
+**Authentication:**
+- HuggingFace account
+- Access to google/gemma-3-4b-it model
+- HuggingFace CLI login
+
+## Performance Expectations
+
+**With RTX 5000 Ada (16GB):**
+- Model loading: 3-5 seconds
+- Analysis: 1-2 seconds per frame
+- Memory usage: 8-10GB VRAM
+
+**CPU Fallback:**
+- Model loading: 10-15 seconds  
+- Analysis: 3-5 seconds per frame
+- Memory usage: 6-8GB RAM
+
+## Choose Your Path
+
+| Use Case | Project | Setup Complexity | Features |
+|----------|---------|------------------|----------|
+| **Quick Testing** | `ros2_vlm/` (Option 1) | Medium | Live camera + overlay |
+| **Robotics Development** | `ros2_vlm/` (Option 2) | Medium | Full ROS2 integration |
+| **Optimized Video Chat** | `vlm_video_chat/` | Low | Performance-tuned interface |
+
+## Getting Help
+
+1. **Start with:** `ros2_vlm/` project for most use cases
+2. **Read:** The detailed `ros2_vlm/README.md` for architecture understanding
+3. **Test first:** Use the test script to verify VLM functionality
+4. **Troubleshoot:** Check camera, GPU, and HuggingFace authentication
+
+Each project directory contains its own detailed README with specific setup instructions and troubleshooting guides.
