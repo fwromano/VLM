@@ -10,14 +10,14 @@ if ! command -v conda &> /dev/null; then
 fi
 
 # Activate conda environment
-echo "Activating environment: vlm-standalone"
+echo "Activating environment: vlm (shared with ros2_vlm)"
 eval "$(conda shell.bash hook)"
-conda activate vlm-standalone
+conda activate vlm
 
 # Check if environment exists
 if [ $? -ne 0 ]; then
-    echo "Error: 'vlm-standalone' conda environment not found."
-    echo "Please run './setup.sh' first to create the environment."
+    echo "Error: 'vlm' conda environment not found."
+    echo "Please run 'cd ../standalone && ./setup.sh' first to create the environment."
     exit 1
 fi
 

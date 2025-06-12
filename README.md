@@ -6,7 +6,7 @@ Vision-Language Model (VLM) implementations using Google Gemma 3 4B for real-tim
 
 This repository provides two different approaches to using vision-language models with live camera feeds:
 
-1. **Standalone VLM Chat** - Simple, no-dependencies approach
+1. **VLM Video Chat** - Optimized video chat interface
 2. **ROS2 VLM Integration** - Full robotics integration
 
 ## Project Structure
@@ -15,7 +15,7 @@ This repository provides two different approaches to using vision-language model
 VLM/
 ├── README.md              # This file
 ├── CLAUDE.md             # Development notes
-├── standalone/           # Simple VLM chat (no ROS2)
+├── vlm_video_chat/      # Optimized video chat interface
 │   ├── README.md
 │   ├── setup.sh
 │   ├── run.sh
@@ -61,26 +61,27 @@ This provides full ROS2 topics/services integration.
 If you want the simplest possible setup:
 
 ```bash
-cd standalone
+cd vlm_video_chat
 ./setup.sh
 ./run.sh
 ```
 
-This is a basic VLM chat without ROS2 dependencies.
+This is an optimized VLM video chat with performance enhancements.
 
 ## What Each Project Does
 
-### Standalone VLM Chat (`standalone/`)
+### VLM Video Chat (`vlm_video_chat/`)
 
-**Purpose:** Simple VLM chat interface
-**Use case:** Quick testing, minimal dependencies
-**Architecture:** Single Python process
+**Purpose:** Optimized VLM video chat interface
+**Use case:** Quick testing, demonstrations, interactive VLM usage
+**Architecture:** Single Python process with performance optimizations
 
 **Features:**
-- Clean video chat interface
-- Text input for custom questions  
-- Chat history with timestamps
-- No ROS2 complexity
+- Clean video chat interface with real-time camera
+- 10 quick prompt buttons with tooltips
+- Optimized for RTX 5000 Ada (16GB GPU)
+- Performance tuned: 512px inputs, KV cache, explicit device mapping
+- Chat history with timestamps and processing times
 
 ### ROS2 VLM Integration (`ros2_vlm/`)
 
@@ -166,7 +167,7 @@ Camera → ROS2 Node → VLM Subprocess → ROS2 Topics
 |----------|---------|------------------|----------|
 | **Quick Testing** | `ros2_vlm/` (Option 1) | Medium | Live camera + overlay |
 | **Robotics Development** | `ros2_vlm/` (Option 2) | Medium | Full ROS2 integration |
-| **Minimal Setup** | `standalone/` | Low | Basic VLM chat |
+| **Optimized Video Chat** | `vlm_video_chat/` | Low | Performance-tuned interface |
 
 ## Getting Help
 
