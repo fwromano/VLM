@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLM Video Chat</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            padding: 15px;
+            gap: 15px;
+        }
+
+        .video-section {
+            flex: 1;
+            background: #2d2d2d;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-section {
+            width: 450px;
+            background: #2d2d2d;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #404040;
+        }
+
+        .header h2 {
+            color: #0066cc;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 12px;
+            color: #b0b0b0;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00cc66;
+        }
+
+        .status-dot.processing {
+            background: #ff6b35;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-dot.loading {
+            background: #ffd700;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .model-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .model-selector select {
+            background: #404040;
+            border: none;
+            color: #ffffff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .video-container {
+            flex: 1;
+            background: #000000;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #video-feed {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .video-placeholder {
+            color: #666666;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .chat-container {
+            flex: 1;
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 15px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            min-height: 400px;
+            max-height: 400px;
+        }
+
+        .message {
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            line-height: 1.4;
+            position: relative;
+        }
+
+        .message.user {
+            background: #0066cc20;
+            border-left: 3px solid #0066cc;
+        }
+
+        .message.assistant {
+            background: #00cc6620;
+            border-left: 3px solid #00cc66;
+        }
+
+        .message.system {
+            background: #ff6b3520;
+            border-left: 3px solid #ff6b35;
+            font-style: italic;
+        }
+
+        .message.processing {
+            background: #ff6b3520;
+            border-left: 3px solid #ff6b35;
+            animation: pulse 1.5s infinite;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .sender {
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .timestamp {
+            font-size: 10px;
+            color: #888888;
+        }
+
+        .message-content {
+            font-size: 14px;
+        }
+
+        .processing-time {
+            font-size: 10px;
+            color: #888888;
+            margin-top: 4px;
+        }
+
+        .frame-toggle {
+            background: rgba(0, 102, 204, 0.1);
+            border: 1px solid #0066cc;
+            color: #0066cc;
+            cursor: pointer;
+            font-size: 11px;
+            margin-top: 6px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .frame-toggle:hover {
+            background: rgba(0, 102, 204, 0.2);
+            color: #0080ff;
+            border-color: #0080ff;
+        }
+
+        .captured-frame {
+            margin-top: 8px;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #000;
+            display: none;
+            max-width: 100%;
+            border: 1px solid #404040;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .captured-frame.show {
+            display: block;
+            animation: slideDown 0.2s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .captured-frame img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .frame-info {
+            font-size: 9px;
+            color: #888;
+            padding: 6px 10px;
+            background: linear-gradient(135deg, #333 0%, #2a2a2a 100%);
+            border-top: 1px solid #404040;
+        }
+
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        #message-input {
+            flex: 1;
+            background: #404040;
+            border: none;
+            color: #ffffff;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            resize: none;
+            height: 50px;
+        }
+
+        #message-input:focus {
+            outline: 2px solid #0066cc;
+            background: #4a4a4a;
+        }
+
+        .send-button {
+            background: #0066cc;
+            border: none;
+            color: #ffffff;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .send-button:hover {
+            background: #0080ff;
+        }
+
+        .send-button:disabled {
+            background: #666666;
+            cursor: not-allowed;
+        }
+
+        .quick-prompts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .quick-prompt {
+            background: #404040;
+            border: none;
+            color: #b0b0b0;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+
+        .quick-prompt:hover {
+            background: #4a4a4a;
+            color: #ffffff;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-content {
+            background: #2d2d2d;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 300px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #404040;
+            border-top: 4px solid #0066cc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #ff4444;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+
+        .welcome-message {
+            text-align: center;
+            color: #888888;
+            padding: 20px;
+            border-radius: 8px;
+            background: #252525;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 10px;
+            }
+            
+            .chat-section {
+                width: 100%;
+                height: 50vh;
+            }
+            
+            .video-section {
+                height: 50vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Video Section -->
+        <div class="video-section">
+            <div class="header">
+                <h2>Live Camera</h2>
+                <div class="status-info">
+                    <div class="model-selector">
+                        <span>Model:</span>
+                        <select id="model-select">
+                            <option value="4B">4B</option>
+                            {% if bitsandbytes_available and gpu_available %}
+                            <option value="12B">12B</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                    <div class="status-indicator">
+                        <div class="status-dot" id="status-dot"></div>
+                        <span id="status-text">Ready</span>
+                    </div>
+                    <span id="device-info">{{ 'GPU' if gpu_available else 'CPU' }}: Gemma-3-4B</span>
+                </div>
+            </div>
+            <div class="video-container">
+                <img id="video-feed" style="display: none;" />
+                <div class="video-placeholder" id="video-placeholder">
+                    Initializing camera...
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Section -->
+        <div class="chat-section">
+            <div class="header">
+                <h2>AI Analysis</h2>
+            </div>
+            
+            <div class="chat-container" id="chat-container">
+                <div class="welcome-message">
+                    <h3>Welcome to VLM Video Chat</h3>
+                    <p>Ready to analyze your camera feed. Ask me anything about what you see!</p>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <div class="input-row">
+                    <textarea id="message-input" placeholder="Ask about what you see..." rows="2"></textarea>
+                    <button class="send-button" id="send-button">Send</button>
+                </div>
+                
+                <div class="quick-prompts">
+                    <button class="quick-prompt" data-prompt="What do you see?">What do you see?</button>
+                    <button class="quick-prompt" data-prompt="Describe the scene">Describe the scene</button>
+                    <button class="quick-prompt" data-prompt="Count objects">Count objects</button>
+                    <button class="quick-prompt" data-prompt="Read any text">Read any text</button>
+                    <button class="quick-prompt" data-prompt="What colors are prominent?">What colors?</button>
+                    <button class="quick-prompt" data-prompt="Is this environment safe?">Is it safe?</button>
+                    <button class="quick-prompt" data-prompt="What actions are happening?">What actions?</button>
+                    <button class="quick-prompt" data-prompt="Is this indoors or outdoors?">Indoor/outdoor?</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h3 id="loading-title">Loading Model</h3>
+            <p id="loading-text">Please wait while the model loads...</p>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Socket.IO
+        const socket = io();
+
+        // DOM elements
+        const videoFeed = document.getElementById('video-feed');
+        const videoPlaceholder = document.getElementById('video-placeholder');
+        const chatContainer = document.getElementById('chat-container');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+        const deviceInfo = document.getElementById('device-info');
+        const modelSelect = document.getElementById('model-select');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingTitle = document.getElementById('loading-title');
+        const loadingText = document.getElementById('loading-text');
+
+        // State
+        let isProcessing = false;
+        let currentModel = '4B';
+
+        // Socket event handlers
+        socket.on('connect', function() {
+            console.log('Connected to server');
+            addSystemMessage('Connected to VLM server');
+        });
+
+        socket.on('disconnect', function() {
+            console.log('Disconnected from server');
+            addSystemMessage('Disconnected from server');
+        });
+
+        socket.on('video_frame', function(data) {
+            videoFeed.src = 'data:image/jpeg;base64,' + data.frame;
+            videoFeed.style.display = 'block';
+            videoPlaceholder.style.display = 'none';
+        });
+
+        socket.on('status_update', function(data) {
+            const status = data.status;
+            
+            if (status === 'ready') {
+                statusDot.className = 'status-dot';
+                statusText.textContent = 'Ready';
+                isProcessing = false;
+                sendButton.disabled = false;
+                modelSelect.disabled = false;
+                loadingOverlay.style.display = 'none';
+                
+                if (data.model) {
+                    currentModel = data.model;
+                    modelSelect.value = data.model;
+                    updateDeviceInfo();
+                }
+            } else if (status === 'processing') {
+                statusDot.className = 'status-dot processing';
+                statusText.textContent = 'Processing...';
+                isProcessing = true;
+                sendButton.disabled = true;
+            } else if (status.startsWith('loading_')) {
+                const model = status.split('_')[1];
+                statusDot.className = 'status-dot loading';
+                statusText.textContent = `Loading ${model} model...`;
+                sendButton.disabled = true;
+                modelSelect.disabled = true;
+                
+                loadingTitle.textContent = `Loading Gemma 3 ${model} Model`;
+                if (model === '12B') {
+                    loadingText.textContent = 'Loading 4-bit quantized model (~7GB VRAM)...';
+                } else {
+                    loadingText.textContent = 'Loading standard model...';
+                }
+                loadingOverlay.style.display = 'flex';
+            } else if (status === 'error') {
+                statusDot.className = 'status-dot';
+                statusText.textContent = 'Error';
+                sendButton.disabled = false;
+                modelSelect.disabled = false;
+                loadingOverlay.style.display = 'none';
+            }
+        });
+
+        socket.on('chat_message', function(data) {
+            addMessage(data.sender, data.message, data.timestamp, data.processing, data.system, data.frame, data.frame_width, data.frame_height);
+        });
+
+        socket.on('analysis_response', function(data) {
+            // Remove processing message
+            const messages = chatContainer.querySelectorAll('.message.processing');
+            messages.forEach(msg => msg.remove());
+            
+            // Add the real response
+            addMessage('VLM', data.response, data.timestamp, false, false, data.frame, data.frame_width, data.frame_height, data.processing_time);
+        });
+
+        socket.on('error', function(data) {
+            addSystemMessage(`Error: ${data.message}`);
+        });
+
+        // UI functions
+        function addMessage(sender, message, timestamp, processing = false, system = false, frame = null, frameWidth = null, frameHeight = null, processingTime = null) {
+            const messageDiv = document.createElement('div');
+            let className = 'message';
+            
+            if (system) {
+                className += ' system';
+            } else if (processing) {
+                className += ' processing';
+            } else if (sender === 'You') {
+                className += ' user';
+            } else {
+                className += ' assistant';
+            }
+            
+            messageDiv.className = className;
+            
+            let html = `
+                <div class="message-header">
+                    <span class="sender">${sender}</span>
+                    <span class="timestamp">${timestamp}</span>
+                </div>
+                <div class="message-content">${message}</div>
+            `;
+            
+            // Add processing time for VLM responses
+            if (processingTime !== null) {
+                html += `<div class="processing-time">Processing time: ${processingTime.toFixed(2)}s</div>`;
+            }
+            
+            // Add frame toggle button and frame display if frame is provided
+            if (frame && !system) {
+                const frameId = `frame_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                html += `
+                    <button class="frame-toggle" onclick="toggleFrame('${frameId}')">
+                        📸 View captured frame
+                    </button>
+                    <div class="captured-frame" id="${frameId}">
+                        <img src="data:image/jpeg;base64,${frame}" alt="Captured frame" />
+                        <div class="frame-info">${frameWidth}×${frameHeight} • Captured at ${timestamp}</div>
+                    </div>
+                `;
+            }
+            
+            messageDiv.innerHTML = html;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function addSystemMessage(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            addMessage('System', message, timestamp, false, true);
+        }
+
+        function updateDeviceInfo() {
+            const device = '{{ "GPU" if gpu_available else "CPU" }}';
+            deviceInfo.textContent = `${device}: Gemma-3-${currentModel}`;
+        }
+
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message || isProcessing) return;
+            
+            socket.emit('send_message', { message: message });
+            messageInput.value = '';
+            messageInput.focus();
+        }
+
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        modelSelect.addEventListener('change', function() {
+            const newModel = this.value;
+            if (newModel !== currentModel) {
+                socket.emit('change_model', { model: newModel });
+            }
+        });
+
+        // Quick prompts
+        document.querySelectorAll('.quick-prompt').forEach(button => {
+            button.addEventListener('click', function() {
+                const prompt = this.getAttribute('data-prompt');
+                messageInput.value = prompt;
+                sendMessage();
+            });
+        });
+
+        // Frame toggle function (global scope)
+        window.toggleFrame = function(frameId) {
+            const frame = document.getElementById(frameId);
+            const button = frame.previousElementSibling;
+            
+            if (frame.classList.contains('show')) {
+                frame.classList.remove('show');
+                button.textContent = '📸 View captured frame';
+            } else {
+                frame.classList.add('show');
+                button.textContent = '📸 Hide captured frame';
+            }
+        };
+
+        // Auto-focus input
+        messageInput.focus();
+    </script>
+</body>
+</html>

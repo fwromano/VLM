@@ -10,14 +10,14 @@ if ! command -v conda &> /dev/null; then
 fi
 
 # Activate conda environment
-echo "Activating environment: vlm (shared with ros2_vlm)"
+echo "Activating environment: vlm-standalone"
 eval "$(conda shell.bash hook)"
-conda activate vlm
+conda activate vlm-standalone
 
 # Check if environment exists
 if [ $? -ne 0 ]; then
-    echo "Error: 'vlm' conda environment not found."
-    echo "Please run 'cd ../standalone && ./setup.sh' first to create the environment."
+    echo "Error: 'vlm-standalone' conda environment not found."
+    echo "Please run './setup.sh' first to create the environment."
     exit 1
 fi
 
@@ -30,4 +30,4 @@ export CUDA_VISIBLE_DEVICES=0
 export CUDA_DEVICE_ORDER=PCI_BUS_ID
 
 echo "Starting VLM Video Chat..."
-python vlm_standalone.py
+python vlm.py

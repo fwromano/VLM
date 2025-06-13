@@ -1,4 +1,4 @@
-# VLM Camera Requirements
+# VLM Web Requirements (Flask Interface)
 transformers>=4.37.0
 torch>=2.0.0
 torchvision>=0.15.0
@@ -9,8 +9,8 @@ bitsandbytes>=0.40.0
 sentencepiece>=0.1.99
 einops>=0.6.0
 timm>=0.9.0
+flask>=2.3.0
+flask-socketio>=5.3.0
 # flash-attn>=2.3.0  # Optional: For performance optimization (requires CUDA dev tools)
 
-# For advanced multi-threaded GUI version
-# tkinter (usually included with Python)
-# Note: On Ubuntu/Debian install with: sudo apt-get install python3-tk
+# Web interface dependencies included above

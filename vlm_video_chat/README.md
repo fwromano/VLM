@@ -1,35 +1,60 @@
 # VLM Video Chat
 
-A clean, optimized vision-language model chat interface with real-time camera support.
+Real-time camera analysis using vision-language models with multiple standalone interface options.
 
 ## What This Does
 
-Interactive video chat with Google Gemma 3 4B model - ask questions about what your camera sees and get intelligent responses in real-time.
+Interactive video chat with Google Gemma 3 models - ask questions about what your camera sees and get intelligent responses in real-time.
+
+## Available Interfaces
+
+### 🖥️ Standalone Desktop (`standalone/`)
+- Native desktop application using Tkinter
+- Lightweight and fast
+- No network dependencies once set up
+- Completely independent installation
+
+```bash
+cd standalone
+./setup.sh    # Setup environment
+./run_vlm.sh  # Run application
+```
+
+### 🌐 Web Interface (`web/`)
+- Browser-based interface accessible from any device
+- Mobile-friendly responsive design
+- Network access for multiple users
+- Completely independent installation
+
+```bash
+cd web
+./setup.sh    # Setup environment
+./run_vlm.sh  # Run web server (http://localhost:5000)
+```
 
 ## Features
 
-- **Real-time Camera**: 640x480 @ 30 FPS optimized for performance
+- **Real-time Camera**: Live camera feed with VLM processing
 - **Interactive Chat**: Video call style interface with chat history
-- **Quick Prompts**: 10 pre-configured buttons for common questions
-- **GPU Optimized**: Explicit device mapping for RTX 5000 Ada (16GB)
-- **Performance Tuned**: 512px input images, 100 token responses, KV cache
-- **Smart UI**: Tooltips, timestamps, processing time display
+- **Custom Questions**: Type any question about what you see
+- **Model Support**: Gemma 3 4B/12B (quantized) models
+- **GPU Optimized**: CUDA support with CPU fallback
+- **Multi-threaded**: Zero lag video with background AI processing
+- **Independent Modules**: Each interface stands completely alone
 
 ## Quick Start
 
+Choose your preferred interface and follow its setup:
+
 ```bash
-# 1. Setup (one-time)
-./setup.sh
+# For Standalone Desktop:
+cd standalone && ./setup.sh && ./run_vlm.sh
 
-# 2. Authenticate with HuggingFace
-huggingface-cli login
-
-# 3. Accept Gemma license at:
-#    https://huggingface.co/google/gemma-3-4b-it
-
-# 4. Run
-./run.sh
+# For Web Interface:
+cd web && ./setup.sh && ./run_vlm.sh
 ```
+
+**Note**: Each interface requires separate setup and has its own conda environment.
 
 ## Interface Controls
 
@@ -71,11 +96,21 @@ huggingface-cli login
 
 ## Files
 
-- `vlm_standalone.py` - Main application
-- `run.sh` - Launcher script  
+### Interface Applications
+- `vlm_web.py` - Web interface (Flask + WebSocket)
+- `vlm_standalone.py` - Desktop interface (Tkinter)  
+- `vlm_modern.py` - Modern desktop interface (Dear PyGui)
+
+### Launcher Scripts
+- `run_web.sh` - Web interface launcher
+- `run.sh` - Desktop interface launcher
+- `run_modern.sh` - Modern desktop launcher
 - `setup.sh` - Environment setup
+
+### Templates & Config
+- `templates/vlm_chat.html` - Web interface template
 - `requirements.txt` - Python dependencies
-- `README.md` - This file
+- `README.md` - This documentation
 
 ## Troubleshooting
 

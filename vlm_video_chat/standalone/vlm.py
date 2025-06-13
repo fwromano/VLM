@@ -36,6 +36,15 @@ except ImportError as e:
     print(f"Missing library: {e}")
     sys.exit(1)
 
+# Check for bitsandbytes availability
+try:
+    import bitsandbytes as bnb
+    BITSANDBYTES_AVAILABLE = True
+except ImportError:
+    BITSANDBYTES_AVAILABLE = False
+    print("Warning: bitsandbytes not installed. 12B quantized model will not be available.")
+    print("Install with: pip install bitsandbytes")
+
 @dataclass
 class AnalysisRequest:
     image: np.ndarray
@@ -58,22 +67,84 @@ class VLMProcessor:
         self.model = None
         self.processor = None
         self.is_loaded = False
+        self.current_model_id = None
         
-    def load_model(self):
+    def load_model(self, model_id="google/gemma-3-4b-it"):
         """Load the VLM model"""
         try:
-            print(f"Loading Gemma 3 4B model on {self.device}...")
+            # Clear previous model if switching
+            if self.current_model_id and self.current_model_id != model_id:
+                print(f"Switching from {self.current_model_id} to {model_id}...")
+                print("Cleaning up previous model...")
+                
+                # Thorough cleanup
+                if self.model:
+                    # Move model to CPU first if on GPU
+                    if hasattr(self.model, 'to') and self.gpu_available:
+                        self.model.to('cpu')
+                    del self.model
+                    self.model = None
+                
+                if self.processor:
+                    del self.processor
+                    self.processor = None
+                
+                # Force garbage collection
+                import gc
+                gc.collect()
+                
+                # Clear GPU cache multiple times
+                if self.gpu_available:
+                    torch.cuda.empty_cache()
+                    torch.cuda.ipc_collect()
+                    torch.cuda.empty_cache()
+                
+                # Wait a moment for cleanup
+                import time
+                time.sleep(1)
+                
+                self.is_loaded = False
+                self.current_model_id = None
+                print("Previous model cleaned up")
             
-            # Load model and processor with optimizations (skip flash attention for now)
-            print("Loading with optimized standard attention...")
-            self.model = Gemma3ForConditionalGeneration.from_pretrained(
-                "google/gemma-3-4b-it",
-                torch_dtype=torch.bfloat16 if self.gpu_available else torch.float32,
-                device_map={"": 0} if self.gpu_available else None,  # Explicit device mapping
+            # Skip if already loaded
+            if self.current_model_id == model_id and self.is_loaded:
+                return True
+            
+            model_size = "4B" if "4b" in model_id else "12B"
+            is_quantized = "bnb" in model_id or "4bit" in model_id
+            print(f"Loading Gemma 3 {model_size}{' (4-bit quantized)' if is_quantized else ''} model on {self.device}...")
+            
+            # Configure loading based on model type
+            if is_quantized and self.gpu_available:
+                # Load quantized model with BitsAndBytes config
+                from transformers import BitsAndBytesConfig
+                
+                quantization_config = BitsAndBytesConfig(
+                    load_in_4bit=True,
+                    bnb_4bit_compute_dtype=torch.bfloat16,
+                    bnb_4bit_use_double_quant=True,
+                    bnb_4bit_quant_type="nf4"
+                )
+                
+                print("Loading 4-bit quantized model...")
+                self.model = Gemma3ForConditionalGeneration.from_pretrained(
+                    model_id,
+                    quantization_config=quantization_config,
+                    device_map="auto",
+                    trust_remote_code=True
+                )
+            else:
+                # Load standard model
+                print("Loading with optimized standard attention...")
+                self.model = Gemma3ForConditionalGeneration.from_pretrained(
+                    model_id,
+                    torch_dtype=torch.bfloat16 if self.gpu_available else torch.float32,
+                    device_map={"": 0} if self.gpu_available else None,  # Explicit device mapping
                 low_cpu_mem_usage=True  # Reduce CPU memory usage during loading
             )
             
-            self.processor = AutoProcessor.from_pretrained("google/gemma-3-4b-it", use_fast=True)
+            self.processor = AutoProcessor.from_pretrained(model_id, use_fast=True)
             
             # Override generation config to remove sampling parameters
             self.model.generation_config.do_sample = False
@@ -85,11 +156,17 @@ class VLMProcessor:
                 self.model = self.model.to(self.device)
             
             self.is_loaded = True
-            print(f"Model loaded on {self.device}")
+            self.current_model_id = model_id
+            print(f"Model {model_size} loaded on {self.device}")
             return True
             
         except Exception as e:
             print(f"Model loading failed: {e}")
+            # Check if it's a connection/download error
+            if "Connection" in str(e) or "resolve" in str(e) or "404" in str(e):
+                print("Note: Model download requires internet connection")
+            elif "CUDA out of memory" in str(e):
+                print("Note: Insufficient GPU memory for this model")
             return False
     
     def process_image(self, image: np.ndarray, question: str) -> str:
@@ -104,10 +181,22 @@ class VLMProcessor:
             
             pil_image = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
             
-            # Resize image for faster VLM processing while maintaining quality
-            max_size = 512  # Reduced from original size for speed
-            if max(pil_image.size) > max_size:
-                pil_image.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+            # Resize image to match Gemma 3's expected 896x896 resolution
+            # Gemma 3 encodes images to 256 tokens at 896x896 resolution
+            target_size = 896
+            # Create square image with padding to maintain aspect ratio
+            width, height = pil_image.size
+            if width != target_size or height != target_size:
+                # Calculate padding to make square
+                max_dim = max(width, height)
+                # Create new square image with black padding
+                square_img = Image.new('RGB', (max_dim, max_dim), (0, 0, 0))
+                # Paste original image centered
+                paste_x = (max_dim - width) // 2
+                paste_y = (max_dim - height) // 2
+                square_img.paste(pil_image, (paste_x, paste_y))
+                # Resize to target resolution
+                pil_image = square_img.resize((target_size, target_size), Image.Resampling.LANCZOS)
             
             # Create message format for Gemma 3
             messages = [{
@@ -175,6 +264,9 @@ class VLMChatApp:
         self.input_entry = None
         self.send_button = None
         self.status_label = None
+        self.model_selector = None
+        self.switch_model_button = None
+        self.selected_model = None  # Will be initialized after root window
         
         # Quick prompts
         self.quick_prompts = [
@@ -215,6 +307,9 @@ class VLMChatApp:
         self.root.configure(bg="#1a1a1a")
         self.root.minsize(1000, 700)
         
+        # Initialize StringVar after root window is created
+        self.selected_model = tk.StringVar(value="4B")
+        
         # Configure modern style
         style = ttk.Style()
         style.theme_use('clam')
@@ -240,6 +335,24 @@ class VLMChatApp:
         style.map('Modern.TButton',
                  background=[('active', '#0080ff')])
         
+        # Style for combobox
+        style.configure('TCombobox',
+                       fieldbackground='#404040',
+                       background='#404040',
+                       foreground=colors['text'],
+                       borderwidth=0)
+        style.map('TCombobox',
+                 fieldbackground=[('readonly', '#404040')],
+                 selectbackground=[('readonly', colors['accent'])])
+        
+        # Style for progress bar
+        style.configure('TProgressbar',
+                       background=colors['accent'],
+                       troughcolor='#404040',
+                       borderwidth=0,
+                       lightcolor=colors['accent'],
+                       darkcolor=colors['accent'])
+        
         # Main container with dark background
         main_frame = tk.Frame(self.root, bg=colors['bg'])
         main_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
@@ -256,6 +369,34 @@ class VLMChatApp:
         tk.Label(video_header, text="Live Camera", 
                 font=("SF Pro Display", 16, "bold"), 
                 bg=colors['surface'], fg=colors['text']).pack(side=tk.LEFT, anchor='w')
+        
+        # Model selector frame
+        model_frame = tk.Frame(video_header, bg=colors['surface'])
+        model_frame.pack(side=tk.RIGHT, anchor='e', padx=(0, 15))
+        
+        tk.Label(model_frame, text="Model:", 
+                font=("SF Pro Display", 11), 
+                bg=colors['surface'], fg=colors['text_secondary']).pack(side=tk.LEFT, padx=(0, 5))
+        
+        # Model dropdown
+        available_models = ["4B"]
+        if BITSANDBYTES_AVAILABLE and self.gpu_available:
+            available_models.append("12B")
+        
+        self.model_selector = ttk.Combobox(model_frame, 
+                                         textvariable=self.selected_model,
+                                         values=available_models,
+                                         state="readonly",
+                                         width=8,
+                                         font=("SF Pro Display", 10))
+        self.model_selector.pack(side=tk.LEFT)
+        self.model_selector.bind("<<ComboboxSelected>>", self.on_model_change)
+        
+        # Show info if 12B not available
+        if not BITSANDBYTES_AVAILABLE and self.gpu_available:
+            tk.Label(model_frame, text="(12B requires bitsandbytes)", 
+                    font=("SF Pro Display", 9), 
+                    bg=colors['surface'], fg='#666666').pack(side=tk.LEFT, padx=(5, 0))
         
         self.status_label = tk.Label(video_header, text="Ready", 
                                    font=("SF Pro Display", 11), 
@@ -513,9 +654,10 @@ class VLMChatApp:
             print("Camera not found")
             return False
         
-        # Optimize camera settings for speed
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)  # Reduced from 1280 for faster processing
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)  # Reduced from 720 for faster processing
+        # Optimize camera settings for Gemma 3 (expects 896x896 input)
+        # Using higher resolution for better quality input to model
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)  # Higher res for better model input
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)  # 16:9 HD resolution
         self.cap.set(cv2.CAP_PROP_FPS, 30)  # Set higher FPS for smoother video
         self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Reduce buffer to minimize lag
         
@@ -535,8 +677,8 @@ class VLMChatApp:
                 # Convert for display
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 
-                # Resize to fit display (optimized)
-                display_height = 400  # Slightly smaller for better performance
+                # Resize to fit display (keep higher quality for better viewing)
+                display_height = 480  # Higher quality display
                 aspect_ratio = frame.shape[1] / frame.shape[0]
                 display_width = int(display_height * aspect_ratio)
                 
@@ -581,7 +723,8 @@ class VLMChatApp:
             pass
         
         # Update status
-        device_text = f"{'GPU' if self.gpu_available else 'CPU'}: Gemma-3-4B"
+        model_size = self.selected_model.get()
+        device_text = f"{'GPU' if self.gpu_available else 'CPU'}: Gemma-3-{model_size}"
         queue_size = self.request_queue.qsize()
         status_text = f"{device_text} | Queue: {queue_size}"
         
@@ -591,10 +734,128 @@ class VLMChatApp:
         if self.is_running:
             self.root.after(33, self.update_video_frame)  # ~30 FPS
     
+    def on_model_change(self, event=None):
+        """Handle model selection change"""
+        new_model_size = self.selected_model.get()
+        current_model_size = "4B" if self.processor.current_model_id and "4b" in self.processor.current_model_id else "12B"
+        
+        # Skip if same model
+        if new_model_size == current_model_size and self.processor.is_loaded:
+            return
+        
+        # Use quantized 12B model for 16GB VRAM compatibility
+        if new_model_size == "4B":
+            model_id = "google/gemma-3-4b-it"
+        else:
+            # Use Unsloth's 4-bit quantized version that fits in 16GB
+            model_id = "unsloth/gemma-3-12b-it-bnb-4bit"
+        
+        # Create loading dialog
+        loading_dialog = tk.Toplevel(self.root)
+        loading_dialog.title(f"Loading Gemma 3 {new_model_size}")
+        loading_dialog.geometry("400x200")
+        loading_dialog.configure(bg="#2d2d2d")
+        loading_dialog.transient(self.root)
+        loading_dialog.grab_set()
+        
+        # Center the dialog
+        loading_dialog.update_idletasks()
+        x = (loading_dialog.winfo_screenwidth() // 2) - (loading_dialog.winfo_width() // 2)
+        y = (loading_dialog.winfo_screenheight() // 2) - (loading_dialog.winfo_height() // 2)
+        loading_dialog.geometry(f"+{x}+{y}")
+        
+        # Loading content
+        main_frame = tk.Frame(loading_dialog, bg="#2d2d2d")
+        main_frame.pack(expand=True, fill=tk.BOTH, padx=20, pady=20)
+        
+        title_label = tk.Label(main_frame, 
+                             text=f"Loading Gemma 3 {new_model_size} Model",
+                             font=("SF Pro Display", 14, "bold"),
+                             bg="#2d2d2d", fg="#ffffff")
+        title_label.pack(pady=(0, 10))
+        
+        status_label = tk.Label(main_frame,
+                              text="Downloading and initializing model...\nThis may take a few minutes.",
+                              font=("SF Pro Display", 11),
+                              bg="#2d2d2d", fg="#b0b0b0",
+                              justify=tk.CENTER)
+        status_label.pack(pady=10)
+        
+        # Progress bar
+        progress_var = tk.DoubleVar()
+        progress_bar = ttk.Progressbar(main_frame, 
+                                     variable=progress_var,
+                                     mode='indeterminate',
+                                     style='TProgressbar')
+        progress_bar.pack(fill=tk.X, pady=10)
+        progress_bar.start(10)
+        
+        # Info for 12B model
+        if new_model_size == "12B":
+            info_label = tk.Label(main_frame,
+                                text="ℹ️ Using 4-bit quantized model (~7GB VRAM)",
+                                font=("SF Pro Display", 10),
+                                bg="#2d2d2d", fg="#00cc66")
+            info_label.pack(pady=(5, 0))
+        
+        # Disable controls
+        self.model_selector.config(state="disabled")
+        self.send_button.config(state="disabled")
+        self.status_label.config(text=f"Loading {new_model_size} model...")
+        
+        # Load new model in background
+        def load_new_model():
+            try:
+                # Show GPU memory before loading
+                if self.gpu_available:
+                    memory_allocated = torch.cuda.memory_allocated() / 1024**3
+                    memory_reserved = torch.cuda.memory_reserved() / 1024**3
+                    print(f"GPU Memory before loading: {memory_allocated:.2f}GB allocated, {memory_reserved:.2f}GB reserved")
+                
+                success = self.processor.load_model(model_id)
+                if success:
+                    # Show GPU memory after loading
+                    if self.gpu_available:
+                        memory_allocated = torch.cuda.memory_allocated() / 1024**3
+                        memory_reserved = torch.cuda.memory_reserved() / 1024**3
+                        print(f"GPU Memory after loading: {memory_allocated:.2f}GB allocated, {memory_reserved:.2f}GB reserved")
+                    self.root.after(0, lambda: loading_dialog.destroy())
+                    self.root.after(0, lambda: self.status_label.config(text="Ready"))
+                    self.root.after(0, lambda: self.model_selector.config(state="readonly"))
+                    self.root.after(0, lambda: self.send_button.config(state="normal"))
+                    self.root.after(0, lambda: self.add_message("System", f"Successfully loaded Gemma 3 {new_model_size} model", "assistant"))
+                else:
+                    self.root.after(0, lambda: loading_dialog.destroy())
+                    error_msg = f"Failed to load {new_model_size} model.\n\n"
+                    error_msg += "Possible reasons:\n"
+                    error_msg += "• Insufficient GPU memory\n"
+                    error_msg += "• Model not available locally\n"
+                    error_msg += "• Network connection issues\n"
+                    if new_model_size == "12B":
+                        error_msg += "• Missing BitsAndBytes library\n"
+                    error_msg += "\nPlease check your connection and try again."
+                    
+                    self.root.after(0, lambda: messagebox.showerror("Model Loading Failed", error_msg))
+                    # Revert to previous model selection
+                    self.root.after(0, lambda: self.model_selector.set(current_model_size))
+                    self.root.after(0, lambda: self.model_selector.config(state="readonly"))
+                    self.root.after(0, lambda: self.send_button.config(state="normal"))
+                    self.root.after(0, lambda: self.status_label.config(text="Ready"))
+            except Exception as e:
+                self.root.after(0, lambda: loading_dialog.destroy())
+                self.root.after(0, lambda: messagebox.showerror("Model Error", f"Error loading model: {str(e)}"))
+                self.root.after(0, lambda: self.model_selector.set("4B"))
+                self.root.after(0, lambda: self.model_selector.config(state="readonly"))
+                self.root.after(0, lambda: self.send_button.config(state="normal"))
+                self.root.after(0, lambda: self.status_label.config(text="Ready"))
+        
+        threading.Thread(target=load_new_model, daemon=True).start()
+    
     def run(self):
         """Main application loop"""
-        # Load model
-        if not self.processor.load_model():
+        # Load initial model
+        model_id = "google/gemma-3-4b-it"
+        if not self.processor.load_model(model_id):
             return
         
         # Setup camera

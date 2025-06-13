@@ -1,0 +1,26 @@
+# vLLM VLM Requirements
+# High-performance inference for vision-language models with web interface
+
+# Core vLLM dependencies
+vllm>=0.5.0
+torch>=2.0.0
+torchvision>=0.15.0
+transformers>=4.37.0
+pillow>=9.0.0
+opencv-python>=4.8.0
+numpy>=1.24.0
+
+# Web interface dependencies
+flask>=2.3.0
+flask-socketio>=5.3.0
+
+# Optional dependencies for advanced features
+accelerate>=0.20.0
+bitsandbytes>=0.40.0
+
+# Note: vLLM provides high-performance inference with:
+# - CUDA kernel optimizations (2-5x faster than transformers)
+# - Continuous batching for better throughput
+# - PagedAttention for 40-60% less memory usage
+# - Automatic quantization support (AWQ, GPTQ)
+# - Web interface for easy access
