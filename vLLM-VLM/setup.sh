@@ -50,16 +50,16 @@ echo "Verifying installation..."
 python -c "
 import torch
 import vllm
-print(f'✅ PyTorch {torch.__version__}')
-print(f'✅ vLLM {vllm.__version__}')
-print(f'✅ CUDA Available: {torch.cuda.is_available()}')
+print(f'PyTorch {torch.__version__}')
+print(f'vLLM {vllm.__version__}')
+print(f'CUDA Available: {torch.cuda.is_available()}')
 if torch.cuda.is_available():
-    print(f'✅ GPU: {torch.cuda.get_device_name(0)}')
-    print(f'✅ VRAM: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f}GB')
+    print(f'GPU: {torch.cuda.get_device_name(0)}')
+    print(f'VRAM: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f}GB')
 "
 
 echo ""
-echo "Setup complete! 🚀"
+echo "Setup complete!"
 echo ""
 echo "Usage:"
 echo "  # Command-line interface"

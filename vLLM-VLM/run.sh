@@ -23,7 +23,7 @@ export CUDA_DEVICE_ORDER=PCI_BUS_ID
 # Check if no arguments provided
 if [ $# -eq 0 ]; then
     echo ""
-    echo "🎯 Usage Options:"
+    echo "Usage Options:"
     echo ""
     echo "1. Interactive Camera Mode:"
     echo "   ./run.sh --interactive"
@@ -37,7 +37,7 @@ if [ $# -eq 0 ]; then
     echo "4. Different Model:"
     echo "   ./run.sh --model google/gemma-3-12b-it --interactive"
     echo ""
-    echo "📋 Examples:"
+    echo "Examples:"
     echo "   ./run.sh --interactive"
     echo "   ./run.sh --image photo.jpg --question 'Describe this scene'"
     echo "   ./run.sh --test"

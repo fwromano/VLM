@@ -88,11 +88,11 @@ class SimpleTextVLM:
                 stop=["<eos>", "</s>"],  # Stop tokens
             )
             
-            print("✅ vLLM model loaded successfully")
+            print("vLLM model loaded successfully")
             return True
             
         except Exception as e:
-            print(f"❌ Failed to load model: {e}")
+            print(f"Failed to load model: {e}")
             return False
     
     def generate_response(self, question: str) -> str:
@@ -113,7 +113,7 @@ class SimpleTextVLM:
             response = outputs[0].outputs[0].text.strip()
             
             inference_time = time.time() - start_time
-            print(f"⚡ vLLM inference time: {inference_time:.3f}s")
+            print(f"vLLM inference time: {inference_time:.3f}s")
             
             return response
             
@@ -122,7 +122,7 @@ class SimpleTextVLM:
     
     def interactive_mode(self):
         """Interactive text mode"""
-        print("\n💬 Starting interactive text mode...")
+        print("\nStarting interactive text mode...")
         print("Commands:")
         print("  - Type a question and press Enter")
         print("  - Type 'quit' or 'exit' to stop")
@@ -130,18 +130,18 @@ class SimpleTextVLM:
         
         try:
             while True:
-                question = input("❓ Ask me anything: ").strip()
+                question = input("Ask me anything: ").strip()
                 
                 if question.lower() in ['quit', 'exit']:
                     break
                 
                 if question:
-                    print("🤔 Generating response...")
+                    print("Generating response...")
                     response = self.generate_response(question)
-                    print(f"🤖 vLLM: {response}\n")
+                    print(f"vLLM: {response}\n")
         
         except KeyboardInterrupt:
-            print("\n👋 Interactive mode ended")
+            print("\nInteractive mode ended")
 
 def main():
     """Main function with command-line interface"""
@@ -174,7 +174,7 @@ def main():
     args = parser.parse_args()
     
     # Initialize VLM
-    print("🚀 Initializing vLLM Text Demo...")
+    print("Initializing vLLM Text Demo...")
     vlm = SimpleTextVLM(model_name=args.model)
     
     if not vlm.load_model():
@@ -185,14 +185,14 @@ def main():
         vlm.interactive_mode()
     
     elif args.question:
-        print(f"❓ Question: {args.question}")
-        print("🤔 Generating response...")
+        print(f"Question: {args.question}")
+        print("Generating response...")
         
         response = vlm.generate_response(args.question)
-        print(f"🤖 vLLM: {response}")
+        print(f"vLLM: {response}")
     
     elif args.benchmark:
-        print("🏁 Running performance benchmark...")
+        print("Running performance benchmark...")
         
         test_questions = [
             "What is artificial intelligence?",
@@ -206,22 +206,22 @@ def main():
         total_start = time.time()
         
         for i, question in enumerate(test_questions, 1):
-            print(f"\n📝 Test {i}/5: {question}")
+            print(f"\nTest {i}/5: {question}")
             start = time.time()
             response = vlm.generate_response(question)
             end = time.time()
-            print(f"⚡ Time: {end-start:.3f}s")
-            print(f"📄 Response length: {len(response)} chars")
+            print(f"Time: {end-start:.3f}s")
+            print(f"Response length: {len(response)} chars")
         
         total_time = time.time() - total_start
         avg_time = total_time / len(test_questions)
-        print(f"\n📊 Benchmark Results:")
+        print(f"\nBenchmark Results:")
         print(f"   Total time: {total_time:.2f}s")
         print(f"   Average per question: {avg_time:.3f}s")
         print(f"   Questions per second: {1/avg_time:.2f}")
     
     else:
-        print("❌ Please specify --interactive, --question, or --benchmark")
+        print("Please specify --interactive, --question, or --benchmark")
         parser.print_help()
         sys.exit(1)
 

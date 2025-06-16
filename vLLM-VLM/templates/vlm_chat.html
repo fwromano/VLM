@@ -443,7 +443,7 @@
                 <div class="welcome-message">
                     <h3>Welcome to vLLM VLM Video Chat</h3>
                     <p>High-performance vision analysis powered by vLLM. Ask me anything about what you see!</p>
-                    <small style="color: #888; margin-top: 8px; display: block;">⚡ Using vLLM for 2-5x faster inference</small>
+                    <small style="color: #888; margin-top: 8px; display: block;">Using vLLM for 2-5x faster inference</small>
                 </div>
             </div>
 
@@ -611,7 +611,7 @@
                 const frameId = `frame_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
                 html += `
                     <button class="frame-toggle" onclick="toggleFrame('${frameId}')">
-                        📸 View captured frame
+                        View captured frame
                     </button>
                     <div class="captured-frame" id="${frameId}">
                         <img src="data:image/jpeg;base64,${frame}" alt="Captured frame" />
@@ -677,10 +677,10 @@
             
             if (frame.classList.contains('show')) {
                 frame.classList.remove('show');
-                button.textContent = '📸 View captured frame';
+                button.textContent = 'View captured frame';
             } else {
                 frame.classList.add('show');
-                button.textContent = '📸 Hide captured frame';
+                button.textContent = 'Hide captured frame';
             }
         };
 

@@ -127,7 +127,7 @@ class vLLMProcessor:
             
             self.is_loaded = True
             self.current_model_id = model_id
-            print(f"✅ vLLM model {model_size} loaded successfully")
+            print(f"vLLM model {model_size} loaded successfully")
             
             # Show memory usage
             if self.gpu_available:
@@ -505,9 +505,9 @@ class VLMWebApp:
         self.video_thread.start()
         
         print("vLLM VLM Video Chat Web Interface ready")
-        print("🚀 Backend: vLLM (High-Performance)")
-        print("📹 Camera: 1280x720 → 896x896 processing")
-        print("🌐 Web interface: http://localhost:5000")
+        print("Backend: vLLM (High-Performance)")
+        print("Camera: 1280x720 → 896x896 processing")
+        print("Web interface: http://localhost:5000")
         
         # Run Flask app
         try:

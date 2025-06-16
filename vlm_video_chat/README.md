@@ -8,7 +8,7 @@ Interactive video chat with Google Gemma 3 models - ask questions about what you
 
 ## Available Interfaces
 
-### 🖥️ Standalone Desktop (`standalone/`)
+### Standalone Desktop (`standalone/`)
 - Native desktop application using Tkinter
 - Lightweight and fast
 - No network dependencies once set up
@@ -20,7 +20,7 @@ cd standalone
 ./run_vlm.sh  # Run application
 ```
 
-### 🌐 Web Interface (`web/`)
+### Web Interface (`web/`)
 - Browser-based interface accessible from any device
 - Mobile-friendly responsive design
 - Network access for multiple users

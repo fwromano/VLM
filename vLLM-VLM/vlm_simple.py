@@ -97,11 +97,11 @@ class SimpleVLM:
                 stop=["<eos>", "</s>"],  # Stop tokens
             )
             
-            print("✅ Model loaded successfully")
+            print("Model loaded successfully")
             return True
             
         except Exception as e:
-            print(f"❌ Failed to load model: {e}")
+            print(f"Failed to load model: {e}")
             return False
     
     def preprocess_image(self, image_input) -> Image.Image:
@@ -210,8 +210,8 @@ class SimpleVLM:
         except Exception as e:
             # If all multimodal methods fail, provide text-only response
             try:
-                print(f"⚠️ Multimodal processing failed: {str(e)}")
-                print("🔄 Falling back to text-only mode...")
+                print(f"Multimodal processing failed: {str(e)}")
+                print("Falling back to text-only mode...")
                 
                 prompt = f"User: {question}\nAssistant: I can see you're asking about an image, but I'm currently running in text-only mode. "
                 outputs = self.llm.generate([prompt], self.sampling_params)
@@ -219,7 +219,7 @@ class SimpleVLM:
                 return f"[Text-only mode] {response}"
                 
             except Exception as e2:
-                return f"❌ Both multimodal and text processing failed. Multimodal error: {str(e)} | Text error: {str(e2)}"
+                return f"Both multimodal and text processing failed. Multimodal error: {str(e)} | Text error: {str(e2)}"
     
     def interactive_camera_mode(self):
         """Interactive mode using camera input"""
@@ -233,7 +233,7 @@ class SimpleVLM:
         # Initialize camera
         cap = cv2.VideoCapture(0)
         if not cap.isOpened():
-            print("❌ Could not open camera")
+            print("Could not open camera")
             return
         
         # Set camera properties
@@ -241,7 +241,7 @@ class SimpleVLM:
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         cap.set(cv2.CAP_PROP_FPS, 30)
         
-        print("✅ Camera initialized")
+        print("Camera initialized")
         current_frame = None
         
         try:
@@ -256,7 +256,7 @@ class SimpleVLM:
                         cv2.imshow('VLM Camera Feed', frame)
                         key = cv2.waitKey(1) & 0xFF
                         if key == ord('c'):
-                            print("📸 Frame captured!")
+                            print("Frame captured!")
                     except:
                         # Ignore display errors for headless systems
                         pass
@@ -265,36 +265,36 @@ class SimpleVLM:
                 try:
                     import select
                     if select.select([sys.stdin], [], [], 0)[0]:
-                        question = input("❓ Ask about the image: ").strip()
+                        question = input("Ask about the image: ").strip()
                         
                         if question.lower() in ['quit', 'exit']:
                             break
                         
                         if question and current_frame is not None:
-                            print("🤔 Analyzing...")
+                            print("Analyzing...")
                             response = self.ask_about_image(current_frame, question)
-                            print(f"🤖 VLM: {response}\n")
+                            print(f"VLM: {response}\n")
                         elif current_frame is None:
-                            print("❌ No frame captured yet")
+                            print("No frame captured yet")
                         
                 except (ImportError, OSError):
                     # Fallback for systems without select
-                    question = input("❓ Ask about the image (or 'quit' to exit): ").strip()
+                    question = input("Ask about the image (or 'quit' to exit): ").strip()
                     
                     if question.lower() in ['quit', 'exit']:
                         break
                     
                     if question and current_frame is not None:
-                        print("🤔 Analyzing...")
+                        print("Analyzing...")
                         response = self.ask_about_image(current_frame, question)
-                        print(f"🤖 VLM: {response}\n")
+                        print(f"VLM: {response}\n")
                     elif current_frame is None:
-                        print("❌ No frame captured yet")
+                        print("No frame captured yet")
         
         finally:
             cap.release()
             cv2.destroyAllWindows()
-            print("👋 Camera mode ended")
+            print("Camera mode ended")
 
 def main():
     """Main function with command-line interface"""
@@ -328,7 +328,7 @@ def main():
     args = parser.parse_args()
     
     # Initialize VLM
-    print("🚀 Initializing Simple VLM...")
+    print("Initializing Simple VLM...")
     vlm = SimpleVLM(model_name=args.model)
     
     if not vlm.load_model():
@@ -340,25 +340,25 @@ def main():
     
     elif args.image and args.question:
         if not Path(args.image).exists():
-            print(f"❌ Image file not found: {args.image}")
+            print(f"Image file not found: {args.image}")
             sys.exit(1)
         
-        print(f"🖼️  Image: {args.image}")
-        print(f"❓ Question: {args.question}")
-        print("🤔 Analyzing...")
+        print(f"Image: {args.image}")
+        print(f"Question: {args.question}")
+        print("Analyzing...")
         
         response = vlm.ask_about_image(args.image, args.question)
-        print(f"🤖 VLM: {response}")
+        print(f"VLM: {response}")
     
     elif args.test:
         # Create a simple test image
         print("🧪 Running test mode...")
         test_image = Image.new('RGB', (400, 300), color='blue')
         response = vlm.ask_about_image(test_image, "What color is this image?")
-        print(f"🤖 VLM: {response}")
+        print(f"VLM: {response}")
     
     else:
-        print("❌ Please specify either --interactive, --image + --question, or --test")
+        print("Please specify either --interactive, --image + --question, or --test")
         parser.print_help()
         sys.exit(1)
 

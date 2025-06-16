@@ -1,10 +1,10 @@
 # vLLM-VLM Current Status
 
-## 🚨 Important Note
+## Important Note
 
 **Gemma 3 multimodal support in vLLM is currently experimental and the API is rapidly changing.**
 
-## ✅ What Works Now
+## What Works Now
 
 ### 1. **Text-Only vLLM Demo** (`vlm_simple_text.py`)
 ```bash
@@ -26,12 +26,12 @@ python vlm_simple_text.py --benchmark  # Performance test
 ```
 
 **Current Status:** 
-- ✅ Web interface loads and works
-- ✅ Camera streaming works
-- ❌ Image analysis falls back to text-only mode
-- ⚠️ Will show "[Text-only mode]" responses until multimodal API stabilizes
+- Web interface loads and works
+- Camera streaming works
+- Image analysis falls back to text-only mode
+- Will show "[Text-only mode]" responses until multimodal API stabilizes
 
-## 🔄 Current Workaround
+## Current Workaround
 
 The interfaces are configured to:
 1. **Try multimodal processing** first
@@ -39,7 +39,7 @@ The interfaces are configured to:
 3. **Show clear status** when in fallback mode
 4. **Maintain full performance** benefits of vLLM
 
-## 🛠 Working Solutions
+## Working Solutions
 
 ### Option 1: Use Original vlm_video_chat
 For full multimodal functionality right now:
@@ -59,14 +59,14 @@ python vlm_simple_text.py --interactive
 - Use separate vision model for image analysis
 - Combine results for best of both worlds
 
-## 🔮 Expected Timeline
+## Expected Timeline
 
 **vLLM Multimodal Support for Gemma 3:**
 - **Current:** Experimental/unstable API
 - **Expected stable:** Q1-Q2 2025
 - **Full feature parity:** Mid 2025
 
-## 📈 Performance Benefits (Text-Only)
+## Performance Benefits (Text-Only)
 
 | Metric | Standard Transformers | vLLM | Improvement |
 |--------|---------------------|------|-------------|
@@ -75,13 +75,13 @@ python vlm_simple_text.py --interactive
 | **Memory** | 12-14GB | 8-10GB | ~30% less |
 | **Throughput** | 1 req/s | 3-5 req/s | **3-5x better** |
 
-## 🎯 Recommendations
+## Recommendations
 
 1. **For Immediate VLM Use:** Use `../vlm_video_chat/` (stable, full-featured)
 2. **For vLLM Performance Demo:** Use `vlm_simple_text.py` 
 3. **For Future:** Wait for vLLM multimodal API to stabilize
 
-## 🔧 Easy Migration Path
+## Easy Migration Path
 
 When vLLM multimodal becomes stable:
 1. Update the `process_image()` method

@@ -8,12 +8,12 @@ Simple command-line VLM that can analyze images and answer questions about them 
 
 ## Key Features
 
-- **🚀 High Performance**: Uses vLLM for 2-5x faster inference than standard transformers
-- **🎯 Simple Interface**: Command-line tool with clear options
-- **📹 Camera Support**: Interactive mode with real-time camera input
-- **🖼️ Image Analysis**: Single image processing with custom questions
-- **⚡ GPU Optimized**: Efficient VRAM usage and CUDA kernel optimizations
-- **🔧 Minimal Setup**: One script to install everything
+- **High Performance**: Uses vLLM for 2-5x faster inference than standard transformers
+- **Simple Interface**: Command-line tool with clear options
+- **Camera Support**: Interactive mode with real-time camera input
+- **Image Analysis**: Single image processing with custom questions
+- **GPU Optimized**: Efficient VRAM usage and CUDA kernel optimizations
+- **Minimal Setup**: One script to install everything
 
 ## Performance Benefits (vLLM vs Standard)
 
@@ -43,7 +43,7 @@ Simple command-line VLM that can analyze images and answer questions about them 
 
 ## Interface Options
 
-### 🌐 Web Interface (Recommended)
+### Web Interface (Recommended)
 Modern web browser interface with real-time video streaming
 ```bash
 ./run_web.sh
