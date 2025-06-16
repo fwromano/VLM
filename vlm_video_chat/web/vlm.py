@@ -109,36 +109,25 @@ class VLMProcessor:
             if self.current_model_id == model_id and self.is_loaded:
                 return True
             
-            model_size = "4B" if "4b" in model_id else "12B"
+            # Determine model size more accurately - check 12B first!
+            if "12b" in model_id.lower():
+                model_size = "12B"
+            elif "4b" in model_id.lower():
+                model_size = "4B"
+            else:
+                model_size = "Unknown"
+            
             is_quantized = "bnb" in model_id or "4bit" in model_id
             print(f"Loading Gemma 3 {model_size}{' (4-bit quantized)' if is_quantized else ''} model on {self.device}...")
             
-            # Configure loading based on model type
-            if is_quantized and self.gpu_available:
-                from transformers import BitsAndBytesConfig
-                
-                quantization_config = BitsAndBytesConfig(
-                    load_in_4bit=True,
-                    bnb_4bit_compute_dtype=torch.bfloat16,
-                    bnb_4bit_use_double_quant=True,
-                    bnb_4bit_quant_type="nf4"
-                )
-                
-                print("Loading 4-bit quantized model...")
-                self.model = Gemma3ForConditionalGeneration.from_pretrained(
-                    model_id,
-                    quantization_config=quantization_config,
-                    device_map="auto",
-                    trust_remote_code=True
-                )
-            else:
-                print("Loading with optimized standard attention...")
-                self.model = Gemma3ForConditionalGeneration.from_pretrained(
-                    model_id,
-                    torch_dtype=torch.bfloat16 if self.gpu_available else torch.float32,
-                    device_map={"": 0} if self.gpu_available else None,
-                    low_cpu_mem_usage=True
-                )
+            # Load 4B model with optimized settings
+            print("Loading Gemma 3 4B model with optimized settings...")
+            self.model = Gemma3ForConditionalGeneration.from_pretrained(
+                model_id,
+                torch_dtype=torch.bfloat16 if self.gpu_available else torch.float32,
+                device_map={"": 0} if self.gpu_available else None,
+                low_cpu_mem_usage=True
+            )
             
             self.processor = AutoProcessor.from_pretrained(model_id, use_fast=True)
             
@@ -166,8 +155,8 @@ class VLMProcessor:
     
     def process_image(self, image: np.ndarray, question: str) -> str:
         """Process image with VLM"""
-        if not self.is_loaded:
-            return "Model not loaded"
+        if not self.is_loaded or self.model is None:
+            return "Model not loaded or unavailable"
         
         try:
             # Convert numpy array to PIL Image
@@ -203,11 +192,11 @@ class VLMProcessor:
             # Move inputs to device
             inputs = {k: v.to(self.device) for k, v in inputs.items()}
             
-            # Generate response with optimizations
+            # Generate response
             with torch.no_grad():
                 outputs = self.model.generate(
                     **inputs,
-                    max_new_tokens=250,
+                    max_new_tokens=200,
                     do_sample=False,
                     use_cache=True,
                     pad_token_id=self.processor.tokenizer.eos_token_id
@@ -224,6 +213,7 @@ class VLMProcessor:
             return generated_text.strip()
             
         except Exception as e:
+            print(f"Error during image processing: {e}")
             return f"Analysis error: {str(e)}"
 
 class VLMWebApp:
@@ -459,47 +449,16 @@ class VLMWebApp:
         
         @self.socketio.on('change_model')
         def handle_model_change(data):
-            new_model = data.get('model')
-            if new_model == self.selected_model and self.processor.is_loaded:
-                return
-            
-            self.selected_model = new_model
-            
-            # Determine model ID
-            if new_model == "4B":
-                model_id = "google/gemma-3-4b-it"
-            else:
-                model_id = "unsloth/gemma-3-12b-it-bnb-4bit"
-            
-            emit('status_update', {'status': f'loading_{new_model}'}, broadcast=True)
-            
-            # Load model in background
-            def load_model():
-                success = self.processor.load_model(model_id)
-                if success:
-                    self.socketio.emit('status_update', {'status': 'ready', 'model': new_model})
-                    self.socketio.emit('chat_message', {
-                        'sender': 'System',
-                        'message': f'Successfully loaded Gemma 3 {new_model} model',
-                        'timestamp': time.strftime("%H:%M:%S"),
-                        'system': True
-                    })
-                else:
-                    self.socketio.emit('status_update', {'status': 'error'})
-                    self.socketio.emit('chat_message', {
-                        'sender': 'System',
-                        'message': f'Failed to load {new_model} model',
-                        'timestamp': time.strftime("%H:%M:%S"),
-                        'system': True
-                    })
-            
-            threading.Thread(target=load_model, daemon=True).start()
+            # Model switching disabled - only 4B model available
+            # Just acknowledge the request but don't change anything
+            emit('status_update', {'status': 'ready', 'model': '4B'})
     
     def run(self):
         """Main application loop"""
-        # Load initial model
+        # Load 4B model (only model available)
         model_id = "google/gemma-3-4b-it"
         if not self.processor.load_model(model_id):
+            print("Failed to load Gemma 3 4B model")
             return
         
         # Setup camera

@@ -793,7 +793,7 @@ class VLMChatApp:
         # Info for 12B model
         if new_model_size == "12B":
             info_label = tk.Label(main_frame,
-                                text="ℹ️ Using 4-bit quantized model (~7GB VRAM)",
+                                text="Using 4-bit quantized model (~7GB VRAM)",
                                 font=("SF Pro Display", 10),
                                 bg="#2d2d2d", fg="#00cc66")
             info_label.pack(pady=(5, 0))

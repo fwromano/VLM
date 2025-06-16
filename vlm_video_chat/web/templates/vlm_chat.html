@@ -412,10 +412,7 @@
                     <div class="model-selector">
                         <span>Model:</span>
                         <select id="model-select">
-                            <option value="4B">4B</option>
-                            {% if bitsandbytes_available and gpu_available %}
-                            <option value="12B">12B</option>
-                            {% endif %}
+                            <option value="4B">Gemma 3 4B</option>
                         </select>
                     </div>
                     <div class="status-indicator">
@@ -610,7 +607,7 @@
                 const frameId = `frame_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
                 html += `
                     <button class="frame-toggle" onclick="toggleFrame('${frameId}')">
-                        📸 View captured frame
+                        View captured frame
                     </button>
                     <div class="captured-frame" id="${frameId}">
                         <img src="data:image/jpeg;base64,${frame}" alt="Captured frame" />
@@ -676,10 +673,10 @@
             
             if (frame.classList.contains('show')) {
                 frame.classList.remove('show');
-                button.textContent = '📸 View captured frame';
+                button.textContent = 'View captured frame';
             } else {
                 frame.classList.add('show');
-                button.textContent = '📸 Hide captured frame';
+                button.textContent = 'Hide captured frame';
             }
         };
 

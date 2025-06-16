@@ -37,11 +37,11 @@ if [ $? -ne 0 ]; then
 fi
 
 echo ""
-echo "🚀 Starting VLM Video Chat Web Server..."
-echo "📹 Camera resolution: 1280x720 → 896x896 (model input)"
-echo "🤖 Models available: Gemma 3 4B, 12B (quantized)"
-echo "🌐 Web interface: http://localhost:5000"
-echo "📱 Mobile friendly: Access from any device on your network"
+echo "Starting VLM Video Chat Web Server..."
+echo "Camera resolution: 1280x720 → 896x896 (model input)"
+echo "Models available: Gemma 3 4B, 12B (quantized)"
+echo "Web interface: http://localhost:5000"
+echo "Mobile friendly: Access from any device on your network"
 echo ""
 echo "Press Ctrl+C to stop the server"
 echo ""
