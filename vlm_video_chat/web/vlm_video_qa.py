@@ -18,7 +18,7 @@ import urllib.request as _urlreq
 import urllib.parse as _urlparse
 
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
 app.config['SECRET_KEY'] = 'vlm_video_qa_secret'
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -70,6 +70,12 @@ def extract_frame(video_path: str, timestamp_sec: float) -> np.ndarray:
             raise RuntimeError('Failed to read frame at requested time')
     cap.release()
     return frame
+
+
+@app.route('/')
+def index_redirect():
+    # Serve the video QA page at root for convenience
+    return render_template('vlm_video_qa.html')
 
 
 @app.route('/video_qa')
@@ -143,4 +149,3 @@ def ask():
 if __name__ == '__main__':
     # Run development server
     app.run(host='0.0.0.0', port=5050, debug=False)
-
