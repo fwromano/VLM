@@ -4,6 +4,12 @@
   "port": 8080,
   "host": "0.0.0.0",
   "models": {
+    "fastvlm-7b": {
+      "type": "vision",
+      "backend": ["transformers"],
+      "hf_id": "apple/FastVLM-7B",
+      "input_size": 448
+    },
     "gemma-3-4b-it": {
       "type": "vision",
       "backend": ["transformers", "vllm"],

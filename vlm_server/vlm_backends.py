@@ -39,6 +39,7 @@ class ModelManager:
             AutoProcessor,
             AutoTokenizer,
             AutoModelForCausalLM,
+            AutoModelForImageTextToText,
         )
         import torch
         from PIL import Image
@@ -47,6 +48,7 @@ class ModelManager:
             'AutoProcessor': AutoProcessor,
             'AutoTokenizer': AutoTokenizer,
             'AutoModelForCausalLM': AutoModelForCausalLM,
+            'AutoModelForImageTextToText': AutoModelForImageTextToText,
             'torch': torch,
             'Image': Image,
         }
@@ -75,14 +77,43 @@ class ModelManager:
 
         vision = model_cfg['type'] == 'vision'
         if vision:
-            model = T['Gemma3ForConditionalGeneration'].from_pretrained(
-                hf_id,
-                torch_dtype=dtype,
-                device_map={"": 0} if self.device == 'cuda' else None,
-                low_cpu_mem_usage=True,
-                trust_remote_code=True,
-            )
-            processor = T['AutoProcessor'].from_pretrained(hf_id, use_fast=True)
+            # Try a generic VLM loader first (works for FastVLM-7B and many VLMs)
+            model = None
+            processor = None
+            last_exc = None
+            try:
+                model = T['AutoModelForImageTextToText'].from_pretrained(
+                    hf_id,
+                    torch_dtype=dtype,
+                    device_map={"": 0} if self.device == 'cuda' else None,
+                    low_cpu_mem_usage=True,
+                    trust_remote_code=True,
+                )
+                processor = T['AutoProcessor'].from_pretrained(hf_id, trust_remote_code=True, use_fast=True)
+            except Exception as e1:
+                last_exc = e1
+                # Try Gemma 3 specific path
+                try:
+                    model = T['Gemma3ForConditionalGeneration'].from_pretrained(
+                        hf_id,
+                        torch_dtype=dtype,
+                        device_map={"": 0} if self.device == 'cuda' else None,
+                        low_cpu_mem_usage=True,
+                        trust_remote_code=True,
+                    )
+                    processor = T['AutoProcessor'].from_pretrained(hf_id, use_fast=True)
+                except Exception as e2:
+                    last_exc = e2
+                    # Fallback to causal LM if model provides image-text via tokens
+                    model = T['AutoModelForCausalLM'].from_pretrained(
+                        hf_id,
+                        torch_dtype=dtype,
+                        device_map={"": 0} if self.device == 'cuda' else None,
+                        low_cpu_mem_usage=True,
+                        trust_remote_code=True,
+                    )
+                    processor = T['AutoProcessor'].from_pretrained(hf_id, trust_remote_code=True, use_fast=True)
+
             if self.device != 'cuda':
                 model = model.to(self.device)
             self.loaded_models[model_key] = {
