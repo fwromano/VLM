@@ -15,14 +15,16 @@ from io import BytesIO
 warnings.filterwarnings('ignore')
 
 # Set CUDA environment before imports
-os.environ.update({
-    'CUDA_HOME': '/usr',
-    'CUDA_ROOT': '/usr', 
-    'CUDA_PATH': '/usr',
-    'LD_LIBRARY_PATH': '/usr/lib/x86_64-linux-gnu',
-    'CUDA_VISIBLE_DEVICES': '0',
-    'CUDA_DEVICE_ORDER': 'PCI_BUS_ID'
-})
+import platform as _platform
+if _platform.system() != 'Darwin':
+    os.environ.update({
+        'CUDA_HOME': '/usr',
+        'CUDA_ROOT': '/usr', 
+        'CUDA_PATH': '/usr',
+        'LD_LIBRARY_PATH': '/usr/lib/x86_64-linux-gnu',
+        'CUDA_VISIBLE_DEVICES': '0',
+        'CUDA_DEVICE_ORDER': 'PCI_BUS_ID'
+    })
 
 print("VLM Video Chat - Streaming Working Version")
 print("==========================================")

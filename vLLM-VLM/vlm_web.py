@@ -15,14 +15,16 @@ from io import BytesIO
 warnings.filterwarnings('ignore')
 
 # Set CUDA environment before imports
-os.environ.update({
-    'CUDA_HOME': '/usr',
-    'CUDA_ROOT': '/usr', 
-    'CUDA_PATH': '/usr',
-    'LD_LIBRARY_PATH': '/usr/lib/x86_64-linux-gnu',
-    'CUDA_VISIBLE_DEVICES': '0',
-    'CUDA_DEVICE_ORDER': 'PCI_BUS_ID'
-})
+import platform as _platform
+if _platform.system() != 'Darwin':
+    os.environ.update({
+        'CUDA_HOME': '/usr',
+        'CUDA_ROOT': '/usr', 
+        'CUDA_PATH': '/usr',
+        'LD_LIBRARY_PATH': '/usr/lib/x86_64-linux-gnu',
+        'CUDA_VISIBLE_DEVICES': '0',
+        'CUDA_DEVICE_ORDER': 'PCI_BUS_ID'
+    })
 
 print("vLLM VLM Video Chat - Web Interface")
 print("===================================")
@@ -32,7 +34,6 @@ try:
     import cv2
     from flask import Flask, render_template, request, jsonify
     from flask_socketio import SocketIO, emit
-    from vllm import LLM, SamplingParams
     from PIL import Image
     import json
     import io
@@ -42,8 +43,15 @@ try:
     import urllib.parse as _urlparse
 except ImportError as e:
     print(f"Missing library: {e}")
-    print("Install with: pip install flask flask-socketio vllm")
-    sys.exit(1)
+    print("Install with: pip install flask flask-socketio")
+    # Continue; we can operate in server-first mode
+
+# Optional vLLM
+try:
+    from vllm import LLM, SamplingParams
+    VLLM_AVAILABLE = True
+except Exception:
+    VLLM_AVAILABLE = False
 
 @dataclass
 class AnalysisRequest:
@@ -120,6 +128,8 @@ class vLLMProcessor:
                 print("Using quantization for 12B model...")
                 vllm_config["quantization"] = "awq"  # Use AWQ quantization
             
+            if not VLLM_AVAILABLE:
+                raise RuntimeError("vLLM not available on this platform; use server-first mode or install vLLM on Linux/CUDA")
             print("Initializing vLLM engine...")
             self.llm = LLM(**vllm_config)
             
@@ -397,7 +407,7 @@ class VLMWebApp:
         def index():
             return render_template('vlm_chat.html', 
                                  gpu_available=self.gpu_available,
-                                 vllm_available=True)
+                                 vllm_available=VLLM_AVAILABLE)
         
         @self.socketio.on('connect')
         def handle_connect():

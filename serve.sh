@@ -61,6 +61,9 @@ install_python_deps() {
     $PYTHON_BIN -m pip install fastapi uvicorn[standard] transformers torch torchvision pillow opencv-python numpy psutil python-multipart || true
   fi
 
+  # Ensure core server deps present even if the requirements step partially failed
+  $PYTHON_BIN -m pip install -U fastapi uvicorn[standard] || true
+
   # Try optional acceleration libs conditionally
   if [[ "$OS_NAME" != "Darwin" && $HAS_GPU -eq 1 ]]; then
     # vLLM (CUDA only); ignore failures

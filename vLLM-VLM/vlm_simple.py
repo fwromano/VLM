@@ -26,25 +26,32 @@ from io import BytesIO
 warnings.filterwarnings('ignore')
 
 # Set CUDA environment
-os.environ.update({
-    'CUDA_HOME': '/usr',
-    'CUDA_ROOT': '/usr', 
-    'CUDA_PATH': '/usr',
-    'LD_LIBRARY_PATH': '/usr/lib/x86_64-linux-gnu',
-    'CUDA_VISIBLE_DEVICES': '0',
-    'CUDA_DEVICE_ORDER': 'PCI_BUS_ID'
-})
+import platform as _platform
+if _platform.system() != 'Darwin':
+    os.environ.update({
+        'CUDA_HOME': '/usr',
+        'CUDA_ROOT': '/usr', 
+        'CUDA_PATH': '/usr',
+        'LD_LIBRARY_PATH': '/usr/lib/x86_64-linux-gnu',
+        'CUDA_VISIBLE_DEVICES': '0',
+        'CUDA_DEVICE_ORDER': 'PCI_BUS_ID'
+    })
 
 try:
     import torch
-    from vllm import LLM, SamplingParams
     from PIL import Image
     import cv2
     import numpy as np
 except ImportError as e:
     print(f"Missing required library: {e}")
-    print("Install with: pip install vllm pillow opencv-python")
-    sys.exit(1)
+    print("Install with: pip install pillow opencv-python")
+    # Continue; server-first mode may be used
+
+try:
+    from vllm import LLM, SamplingParams
+    VLLM_AVAILABLE = True
+except Exception:
+    VLLM_AVAILABLE = False
 
 class SimpleVLM:
     """Simple VLM using vLLM for high-performance inference"""
@@ -368,8 +375,24 @@ def main():
     print("Initializing Simple VLM...")
     vlm = SimpleVLM(model_name=args.model)
     
-    if not vlm.load_model():
-        sys.exit(1)
+    # Only load local model if vLLM available and no server found
+    server_url = os.environ.get('VLM_SERVER_URL', '')
+    server_ok = False
+    if server_url:
+        try:
+            import urllib.request as _urlreq
+            with _urlreq.urlopen(server_url.rstrip('/') + '/v1/health', timeout=1.5) as _:
+                server_ok = True
+        except Exception:
+            server_ok = False
+
+    if not server_ok:
+        if VLLM_AVAILABLE:
+            if not vlm.load_model():
+                sys.exit(1)
+        else:
+            print("Server not reachable and vLLM not available; please start ./serve.sh or install vLLM on Linux/CUDA")
+            sys.exit(1)
     
     # Choose mode based on arguments
     if args.interactive:

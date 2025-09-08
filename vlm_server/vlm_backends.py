@@ -65,7 +65,13 @@ class ModelManager:
         T = self._lazy['transformers']
         model_cfg = self.cfg['models'][model_key]
         hf_id = model_cfg['hf_id']
-        dtype = T['torch'].bfloat16 if self.device in ('cuda', 'mps') else T['torch'].float32
+        # Use bfloat16 on CUDA, float16 on MPS, float32 on CPU
+        if self.device == 'cuda':
+            dtype = T['torch'].bfloat16
+        elif self.device == 'mps':
+            dtype = T['torch'].float16
+        else:
+            dtype = T['torch'].float32
 
         vision = model_cfg['type'] == 'vision'
         if vision:
