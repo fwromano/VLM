@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video QA</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: #0a0a0a; color: #fff; }
+    .container { max-width: 1100px; margin: 20px auto; padding: 0 16px; }
+    .row { display: flex; gap: 16px; }
+    .col { flex: 1; background: #161616; border: 1px solid #2a2a2a; border-radius: 10px; padding: 16px; }
+    h2 { margin-top: 0; }
+    video { width: 100%; border-radius: 8px; background: #000; }
+    .controls { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+    .btn { background: #0066cc; border: none; color: #fff; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+    .btn.secondary { background: #444; }
+    .status { color: #9aa; font-size: 12px; }
+    .answer { background: #0f1a2b; border: 1px solid #16365e; padding: 12px; border-radius: 6px; margin-top: 12px; white-space: pre-wrap; }
+    .preview { margin-top: 10px; }
+    .inline { display: inline-block; }
+    label { font-size: 14px; color: #bbb; }
+    select, input[type="text"], input[type="file"] { background: #222; color: #fff; border: 1px solid #333; border-radius: 6px; padding: 6px; }
+  </style>
+  <script>
+    let currentVideoURL = null;
+    function fmtTime(t){ const m=Math.floor(t/60), s=Math.floor(t%60).toString().padStart(2,'0'); return `${m}:${s}`; }
+    async function uploadVideo(){
+      const fileInput = document.getElementById('videoFile');
+      if (!fileInput.files.length) return alert('Select a video file');
+      const fd = new FormData();
+      fd.append('video', fileInput.files[0]);
+      setStatus('Uploading…');
+      const r = await fetch('/upload_video', { method: 'POST', body: fd });
+      const j = await r.json();
+      if (!r.ok){ setStatus('Upload failed: ' + (j.error||r.status)); return; }
+      currentVideoURL = j.video_url;
+      const v = document.getElementById('player');
+      v.src = j.video_url; v.load(); setStatus('Uploaded.');
+    }
+    function setStatus(msg){ document.getElementById('status').textContent = msg; }
+    async function ask(){
+      const v = document.getElementById('player');
+      if (!currentVideoURL) return alert('Upload a video first');
+      const question = document.getElementById('question').value.trim();
+      if (!question) return;
+      const model = document.getElementById('model').value;
+      const fast = document.getElementById('fast').checked;
+      const backend = document.getElementById('backend').value || null;
+      const ts = v.currentTime || 0;
+      setStatus(`Analyzing @ ${fmtTime(ts)}…`);
+      const r = await fetch('/ask', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ video_url: currentVideoURL, question, timestamp: ts, model, fast, backend }) });
+      const j = await r.json();
+      if (!r.ok){
+        setStatus('Error: ' + (j.error || r.status));
+        document.getElementById('answer').textContent = '[Server error] ' + (j.error || '');
+        return;
+      }
+      document.getElementById('answer').textContent = j.answer || '';
+      if (j.frame){
+        const img = document.getElementById('preview');
+        img.src = 'data:image/jpeg;base64,' + j.frame;
+        img.width = j.frame_w; img.height = j.frame_h;
+      }
+      setStatus(`Done @ ${fmtTime(ts)}`);
+    }
+  </script>
+  </head>
+<body>
+  <div class="container">
+    <h2>Video Q&A (uses VLM Server)</h2>
+    <div class="row">
+      <div class="col">
+        <div>
+          <label>Upload video: </label>
+          <input type="file" id="videoFile" accept="video/mp4,video/webm,video/quicktime,video/x-matroska" />
+          <button class="btn" onclick="uploadVideo()">Upload</button>
+          <span id="status" class="status"></span>
+        </div>
+        <video id="player" controls style="margin-top:10px;">
+          Your browser does not support HTML5 video.
+        </video>
+        <div class="controls">
+          <label>Model:</label>
+          <select id="model">
+            <option value="gemma-3-4b-it">Fast VLM (Gemma 3 4B)</option>
+            <option value="internvl-3">InternVL 3.5 8B (HF)</option>
+            <option value="gemma-3n-e4b-it">Gemma 3n E4B</option>
+          </select>
+          <label class="inline"><input type="checkbox" id="fast" /> Fast mode</label>
+          <label>Backend:</label>
+          <select id="backend">
+            <option value="">auto</option>
+            <option value="transformers">transformers</option>
+            <option value="vllm">vLLM</option>
+          </select>
+        </div>
+        <div class="controls">
+          <input type="text" id="question" size="60" placeholder="Ask about the frame at the current timestamp…" />
+          <button class="btn" onclick="ask()">Ask</button>
+        </div>
+      </div>
+      <div class="col">
+        <h3>Answer</h3>
+        <div id="answer" class="answer"></div>
+        <div class="preview">
+          <img id="preview" alt="Preview" />
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
