@@ -183,6 +183,8 @@ class VLMProcessor:
                         out = json.loads(resp.read().decode('utf-8'))
                         if 'text' in out:
                             return out['text']
+                        if 'error' in out:
+                            return f"[Server error] {out['error']}"
             except Exception:
                 pass
 
@@ -498,7 +500,15 @@ class VLMWebApp:
             server_ok = False
 
         if server_ok:
-            print(f"Using VLM server at {server_url}; skipping local model load")
+            # Query health to show device backend
+            backend_device = 'unknown'
+            try:
+                with _urlreq.urlopen(server_url + '/v1/health', timeout=1.5) as resp:
+                    h = json.loads(resp.read().decode('utf-8'))
+                    backend_device = h.get('device', 'unknown')
+            except Exception:
+                pass
+            print(f"Using VLM server at {server_url} (device: {backend_device}); skipping local model load")
         else:
             # Load 4B model locally if server not available
             model_id = "google/gemma-3-4b-it"

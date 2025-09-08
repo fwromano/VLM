@@ -12,6 +12,26 @@ sudo ./setup/install_ros2_packages.sh
 ./demo.sh
 ```
 
+### Using the VLM Server (Recommended)
+
+For best latency and to avoid per‑request cold loads, start the persistent VLM server first from the repo root:
+
+```bash
+./serve.sh
+# Server runs at http://localhost:8080
+```
+
+The ROS2 live demo and node will automatically use the server for inference when it is reachable and fall back to the existing conda subprocess if not.
+
+Optional environment overrides (set before running the demo):
+
+```bash
+export VLM_SERVER_URL=http://127.0.0.1:8080      # or remote server URL
+export VLM_SERVER_MODEL=gemma-3-4b-it            # gemma-3n-e4b-it | internvl-3
+export VLM_SERVER_BACKEND=transformers           # vllm if CUDA on the server
+export VLM_SERVER_FAST=1                         # smaller image + fewer tokens
+```
+
 ## What This Does
 
 This project lets you ask questions about what your camera sees in real-time using Google's Gemma 3 vision-language model. You can either use a simple integrated demo or full ROS2 integration for robotics projects.
@@ -29,6 +49,7 @@ This project lets you ask questions about what your camera sees in real-time usi
 - 2 second analysis intervals  
 - Keyboard shortcuts for instant prompt changes
 - No ROS2 complexity - just works!
+- Uses VLM Server automatically when available for lower latency
 
 **Controls:**
 - `H` - Show/hide help
@@ -59,6 +80,7 @@ This project lets you ask questions about what your camera sees in real-time usi
 - Dynamic prompt changes via `/vlm/set_prompt`
 - 1.5 second analysis intervals
 - Full ROS2 ecosystem integration
+- Uses VLM Server automatically when available; falls back to local subprocess for isolation
 
 **What you see:**
 - Terminal 1: Camera feed viewer (rqt_image_view)
@@ -162,6 +184,7 @@ ros2_vlm/
 - USB camera at `/dev/video0`
 - NVIDIA GPU recommended (16GB+ for optimal performance)
 - HuggingFace account with Google Gemma 3 access
+- VLM Server can run on the same host or a separate GPU host
 
 **Python Environments:**
 - System Python 3.12 (for ROS2)
@@ -198,6 +221,7 @@ ros2_vlm/
 **ROS2 errors:**
 - Source ROS2 setup: `source /opt/ros/jazzy/setup.bash`
 - Install packages: `sudo ./install_ros2_packages.sh`
+- If using the VLM Server: check `/v1/health` and server logs
 
 **Memory errors:**
 - Reduce model precision in `vlm_processor.py`

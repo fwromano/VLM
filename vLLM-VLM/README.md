@@ -50,6 +50,17 @@ Modern web browser interface with real-time video streaming
 # Open browser to: http://localhost:5000
 ```
 
+Server-first mode (recommended):
+- Start the VLM Server once from the repo root: `./serve.sh`
+- The vLLM web app will use the server for vision Q&A when available and skip local model load. Set via env:
+
+```bash
+export VLM_SERVER_URL=http://127.0.0.1:8080
+export VLM_SERVER_MODEL=gemma-3-4b-it   # gemma-3n-e4b-it | internvl-3
+export VLM_SERVER_BACKEND=transformers  # vllm if CUDA on server
+export VLM_SERVER_FAST=1
+```
+
 **Web Interface Features:**
 - Real-time camera streaming via WebSocket
 - Frame capture with each question (collapsible)
@@ -110,6 +121,7 @@ When in `--interactive` mode:
 - **Gemma 3 12B**: More capable (~24GB model, requires quantization)
 - **Automatic GPU Detection**: Uses available VRAM efficiently
 - **Fallback Support**: CPU inference if GPU unavailable
+- **Server Mode**: When a VLM Server is running, the web app prefers the server for vision and falls back to local vLLM or text-only as needed.
 
 ## Requirements
 
@@ -118,6 +130,7 @@ When in `--interactive` mode:
 - **Python**: 3.8+ (3.10 recommended)
 - **RAM**: 16GB+ system RAM
 - **Storage**: 10GB+ for model caching
+- Or use the VLM Server and let it host models; clients send requests over HTTP.
 
 ## Files
 
@@ -164,6 +177,7 @@ ls /dev/video*
 - First run downloads ~8GB model
 - Uses HuggingFace cache for subsequent runs
 - Set `HF_HOME` to change cache location
+- If using server-first: check `GET /v1/health` and server logs for device and status.
 
 ## Advanced Usage
 

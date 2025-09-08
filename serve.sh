@@ -48,6 +48,12 @@ install_python_deps() {
   echo "Installing Python dependencies (best-effort)…"
   $PYTHON_BIN -m pip install -U pip setuptools wheel >/dev/null 2>&1 || true
 
+  # Prefer CUDA-enabled PyTorch on Linux with NVIDIA GPU
+  if [[ "$OS_NAME" != "Darwin" && $HAS_GPU -eq 1 ]]; then
+    echo "Installing CUDA-enabled PyTorch (cu121) …"
+    $PYTHON_BIN -m pip install --upgrade --index-url https://download.pytorch.org/whl/cu121 torch torchvision || true
+  fi
+
   # Base requirements for the server
   if [[ -f vlm_server/requirements.txt ]]; then
     $PYTHON_BIN -m pip install -r vlm_server/requirements.txt || true

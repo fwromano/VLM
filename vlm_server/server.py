@@ -10,7 +10,7 @@ from typing import Optional, Dict, Any
 
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 
 # Optional imports guarded at runtime
 try:
@@ -150,6 +150,8 @@ async def analyze_image(
     try:
         out = MANAGER.analyze_image(pil, question, selected_model, selected_backend, fast=fast)
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return JSONResponse(status_code=500, content={'error': str(e)})
 
     out['timings'] = {
@@ -221,3 +223,47 @@ async def qa_over_transcript(
         'backend': selected_backend,
     }
 
+
+@app.get("/demo/audio", response_class=HTMLResponse)
+def audio_demo_form():
+    return HTMLResponse(
+        """
+        <!DOCTYPE html>
+        <html><head><meta charset='utf-8'><title>Audio QA Demo</title></head>
+        <body style="font-family: sans-serif; padding: 20px;">
+          <h2>Audio (MP3) Transcribe + QA</h2>
+          <form action="/demo/audio" method="post" enctype="multipart/form-data">
+            <div><label>MP3 File: <input type="file" name="audio" accept="audio/mpeg"></label></div>
+            <div style="margin-top:10px;"><label>Question: <input type="text" name="question" size="60" placeholder="What is being discussed?"></label></div>
+            <div style="margin-top:10px;"><button type="submit">Transcribe and Ask</button></div>
+          </form>
+        </body></html>
+        """
+    )
+
+
+@app.post("/demo/audio", response_class=HTMLResponse)
+async def audio_demo_submit(audio: UploadFile = File(...), question: str = Form(...)):
+    try:
+        content = await audio.read()
+        transcript, info = MANAGER.transcribe_mp3_bytes(content)
+        answer = MANAGER.answer_over_text(transcript, question, CFG.get('default_model','gemma-3-4b-it'), CFG.get('default_backend','transformers'))
+        page = f"""
+        <!DOCTYPE html>
+        <html><head><meta charset='utf-8'><title>Audio QA Result</title></head>
+        <body style='font-family: sans-serif; padding: 20px;'>
+          <h2>Audio (MP3) Transcribe + QA</h2>
+          <p><b>File:</b> {audio.filename}</p>
+          <p><b>Duration:</b> {info.get('duration','?')} s</p>
+          <h3>Transcript</h3>
+          <pre style='background:#f6f6f6; padding:10px; white-space:pre-wrap;'>{transcript}</pre>
+          <h3>Question</h3>
+          <p>{question}</p>
+          <h3>Answer</h3>
+          <p style='background:#eef; padding:10px;'>{answer}</p>
+          <p><a href='/demo/audio'>Back</a></p>
+        </body></html>
+        """
+        return HTMLResponse(page)
+    except Exception as e:
+        return HTMLResponse(f"<pre>Error: {e}</pre>", status_code=500)

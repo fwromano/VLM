@@ -56,6 +56,26 @@ cd web && ./setup.sh && ./run_vlm.sh
 
 **Note**: Each interface requires separate setup and has its own conda environment.
 
+### Use the VLM Server (Recommended)
+
+Start the persistent VLM Server once from the repo root for best performance:
+
+```bash
+./serve.sh
+# Server at http://localhost:8080
+```
+
+Both the web and desktop UIs automatically detect the server and send all inference to it. If the server is unreachable, they fall back to local model loading.
+
+Optional environment overrides for the UIs:
+
+```bash
+export VLM_SERVER_URL=http://127.0.0.1:8080
+export VLM_SERVER_MODEL=gemma-3-4b-it   # gemma-3n-e4b-it | internvl-3
+export VLM_SERVER_BACKEND=transformers  # vllm if CUDA on server
+export VLM_SERVER_FAST=1                # reduce resolution/tokens for lower latency
+```
+
 ## Interface Controls
 
 - **Type questions** in text box
@@ -87,12 +107,16 @@ cd web && ./setup.sh && ./run_vlm.sh
 
 ## Technical Details
 
-- **Model**: Google Gemma 3 4B Instruction-Tuned
+- **Model**: Google Gemma 3 4B Instruction-Tuned (default via server)
 - **Framework**: PyTorch with CUDA 11.8
 - **Input Processing**: Images resized to 512px max for speed
 - **Generation**: 100 token responses with KV cache
 - **Camera**: Optimized settings with reduced buffer lag
 - **Environment**: Shared conda 'vlm' environment
+
+### macOS Support
+- The UIs will use the VLM Server first; on macOS the server runs on MPS (Apple Silicon) or CPU.
+- Audio transcription and QA are available at `http://localhost:8080/demo/audio` (upload MP3 from Safari/Chrome and ask a question).
 
 ## Files
 

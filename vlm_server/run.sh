@@ -23,5 +23,10 @@ fi
 HOST=${HOST:-0.0.0.0}
 PORT=${PORT:-8080}
 
-exec python -m uvicorn vlm_server.server:app --host "$HOST" --port "$PORT" --no-server-header
+# Ensure Python can import the package from repo root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+cd "$REPO_ROOT"
+export PYTHONPATH="$REPO_ROOT:${PYTHONPATH:-}"
 
+exec python -m uvicorn vlm_server.server:app --host "$HOST" --port "$PORT" --no-server-header

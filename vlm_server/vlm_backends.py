@@ -2,6 +2,7 @@ import io
 import os
 import time
 from typing import Any, Dict
+import traceback
 
 
 class ModelManager:
@@ -177,18 +178,50 @@ class ModelManager:
             text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
             inputs = processor(text=text, images=[pil_img], return_tensors='pt')
             inputs = {k: v.to(self.device) for k, v in inputs.items()}
-            with T['torch'].no_grad():
-                out = model.generate(
-                    **inputs,
-                    max_new_tokens=200 if not fast else 120,
-                    do_sample=False,
-                    use_cache=True,
-                    pad_token_id=processor.tokenizer.eos_token_id,
-                )
-            input_ids = inputs['input_ids'][0]
-            output_ids = out[0]
-            new_ids = output_ids[len(input_ids):]
-            text_out = processor.tokenizer.decode(new_ids, skip_special_tokens=True).strip()
+            # Try primary generation settings, then fall back to safer settings on error
+            gen_kwargs = dict(
+                max_new_tokens=200 if not fast else 120,
+                do_sample=False,
+                use_cache=True,
+            )
+            if getattr(processor, 'tokenizer', None) and getattr(processor.tokenizer, 'eos_token_id', None) is not None:
+                gen_kwargs['pad_token_id'] = processor.tokenizer.eos_token_id
+            else:
+                # Fallback to model config eos if tokenizer missing pad
+                if getattr(model.config, 'eos_token_id', None) is not None:
+                    gen_kwargs['pad_token_id'] = model.config.eos_token_id
+
+            try:
+                with T['torch'].no_grad():
+                    out = model.generate(
+                        **inputs,
+                        **gen_kwargs,
+                    )
+            except Exception:
+                # Safer fallback: disable cache, reduce tokens
+                with T['torch'].no_grad():
+                    out = model.generate(
+                        **inputs,
+                        max_new_tokens=100 if not fast else 80,
+                        do_sample=False,
+                        use_cache=False,
+                    )
+            try:
+                input_ids = inputs['input_ids'][0]
+                output_ids = out[0]
+                new_ids = output_ids[len(input_ids):]
+                text_out = processor.tokenizer.decode(new_ids, skip_special_tokens=True).strip()
+            except Exception:
+                # Fallback decoding path
+                try:
+                    text_out = processor.batch_decode(out, skip_special_tokens=True)[0].strip()
+                except Exception:
+                    # Last resort: plain tokenizer decode
+                    tok = getattr(processor, 'tokenizer', None)
+                    if tok is not None:
+                        text_out = tok.decode(out[0], skip_special_tokens=True)
+                    else:
+                        raise
             return {
                 'text': text_out,
                 'backend': 'transformers',
@@ -294,4 +327,3 @@ class ModelManager:
         segments, info = model.transcribe(path, vad_filter=True)
         text = ''.join([seg.text for seg in segments]).strip()
         return text, {'duration': getattr(info, 'duration', None), 'transcribe_time': time.time() - t0}
-

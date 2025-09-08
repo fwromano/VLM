@@ -198,6 +198,8 @@ class VLMProcessor:
                         out = json.loads(resp.read().decode('utf-8'))
                         if 'text' in out:
                             return out['text']
+                        if 'error' in out:
+                            return f"[Server error] {out['error']}"
             except Exception:
                 pass
 

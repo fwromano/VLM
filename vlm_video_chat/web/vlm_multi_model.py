@@ -187,6 +187,9 @@ class VLMProcessor:
                 socketio.emit('stream_start', {'conversation_id': conversation_id, 'model': CONFIG['MODELS'].get(model_key, {}).get('name', '')})
                 with _urlreq.urlopen(req, timeout=10) as resp:
                     out = json.loads(resp.read().decode('utf-8'))
+                    if 'error' in out:
+                        socketio.emit('stream_error', {'conversation_id': conversation_id, 'error': out['error']})
+                        return
                     text = out.get('text', '')
                     if text:
                         socketio.emit('stream_token', {'conversation_id': conversation_id, 'token': text})

@@ -25,6 +25,10 @@ Endpoints
   - Body: {transcript_id or text, question, model, backend}
   - Returns: {answer, timings}
 
+Simple browser demo (no code needed)
+- GET /demo/audio → HTML form to upload an MP3 and ask a question.
+  - Does server-side transcription + QA and shows results.
+
 Backends
 - transformers (Linux/macOS, CUDA/MPS/CPU)
 - vLLM (CUDA only; auto‑detected; falls back gracefully)
@@ -70,3 +74,4 @@ Notes
 - If vLLM import fails or no CUDA, the server auto‑disables vLLM.
 - Audio features use faster-whisper if installed; otherwise disable with clear errors.
 - Web and desktop UIs plus ROS2 node attempt to use this server automatically and fall back locally if unavailable.
+ - On macOS, audio transcription runs on CPU (int8) by default and works out-of-the-box.
