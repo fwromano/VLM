@@ -1,0 +1,26 @@
+{
+  "default_backend": "transformers",
+  "default_model": "gemma-3-4b-it",
+  "port": 8080,
+  "host": "0.0.0.0",
+  "models": {
+    "gemma-3-4b-it": {
+      "type": "vision",
+      "backend": ["transformers", "vllm"],
+      "hf_id": "google/gemma-3-4b-it",
+      "input_size": 896
+    },
+    "gemma-3n-e4b-it": {
+      "type": "vision",
+      "backend": ["transformers"],
+      "hf_id": "google/gemma-3n-E4B-it",
+      "input_size": 896
+    },
+    "internvl-3": {
+      "type": "vision",
+      "backend": ["transformers"],
+      "hf_id": "OpenGVLab/InternVL3_5-8B-HF",
+      "input_size": 448
+    }
+  }
+}

@@ -32,6 +32,11 @@ try:
     from transformers import Gemma3ForConditionalGeneration, AutoProcessor
     from PIL import Image, ImageTk
     import numpy as np
+    import json
+    import base64 as _b64
+    import urllib.request as _urlreq
+    import urllib.error as _urlerr
+    import urllib.parse as _urlparse
 except ImportError as e:
     print(f"Missing library: {e}")
     sys.exit(1)
@@ -170,7 +175,33 @@ class VLMProcessor:
             return False
     
     def process_image(self, image: np.ndarray, question: str) -> str:
-        """Process image with VLM"""
+        """Process image with VLM (server-first, then local fallback)"""
+        # Try server first
+        server_url = os.environ.get('VLM_SERVER_URL', 'http://127.0.0.1:8080')
+        if server_url:
+            try:
+                ok, buf = cv2.imencode('.jpg', image, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+                if ok:
+                    payload = {
+                        'image_base64': _b64.b64encode(buf.tobytes()).decode('utf-8'),
+                        'question': question,
+                    }
+                    if os.environ.get('VLM_SERVER_MODEL'):
+                        payload['model'] = os.environ['VLM_SERVER_MODEL']
+                    if os.environ.get('VLM_SERVER_BACKEND'):
+                        payload['backend'] = os.environ['VLM_SERVER_BACKEND']
+                    if os.environ.get('VLM_SERVER_FAST', '0') in ('1','true','TRUE'):
+                        payload['fast'] = True
+                    data = _urlparse.urlencode(payload).encode('utf-8')
+                    req = _urlreq.Request(server_url.rstrip('/') + '/v1/vision/analyze', data=data)
+                    with _urlreq.urlopen(req, timeout=10) as resp:
+                        out = json.loads(resp.read().decode('utf-8'))
+                        if 'text' in out:
+                            return out['text']
+            except Exception:
+                pass
+
+        # Local fallback
         if not self.is_loaded:
             return "Model not loaded"
         

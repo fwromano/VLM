@@ -15,6 +15,10 @@ import os
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk
+import base64
+import urllib.request
+import urllib.error
+import urllib.parse
 
 class LiveVLMDemo:
     def __init__(self):
@@ -52,6 +56,12 @@ class LiveVLMDemo:
         }
         
         print("Demo initialized")
+        
+        # VLM server options via env
+        self.vlm_server_url = os.environ.get('VLM_SERVER_URL', 'http://127.0.0.1:8080')
+        self.vlm_server_backend = os.environ.get('VLM_SERVER_BACKEND', None)
+        self.vlm_server_model = os.environ.get('VLM_SERVER_MODEL', None)
+        self.vlm_server_fast = os.environ.get('VLM_SERVER_FAST', '0') in ('1', 'true', 'TRUE')
     
     def setup_camera(self):
         """Initialize camera"""
@@ -104,7 +114,32 @@ class LiveVLMDemo:
         print("VLM worker stopped")
     
     def process_with_vlm(self, image, prompt):
-        """Process image with VLM using conda environment"""
+        """Process image via server when available, else subprocess fallback"""
+        # Try server first
+        try:
+            ok, buf = cv2.imencode('.jpg', image, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+            if ok:
+                img_b64 = base64.b64encode(buf.tobytes()).decode('utf-8')
+                payload = {
+                    'image_base64': img_b64,
+                    'question': prompt,
+                }
+                if self.vlm_server_backend:
+                    payload['backend'] = self.vlm_server_backend
+                if self.vlm_server_model:
+                    payload['model'] = self.vlm_server_model
+                if self.vlm_server_fast:
+                    payload['fast'] = True
+                data = urllib.parse.urlencode(payload).encode('utf-8')
+                req = urllib.request.Request(self.vlm_server_url.rstrip('/') + '/v1/vision/analyze', data=data)
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    out = json.loads(resp.read().decode('utf-8'))
+                    if 'text' in out:
+                        return out['text']
+        except Exception as e:
+            print(f"VLM server unavailable, falling back: {e}")
+
+        # Fallback: subprocess
         try:
             # Save image to temporary file
             with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:

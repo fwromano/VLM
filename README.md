@@ -30,6 +30,16 @@ VLM/
 
 ## Quick Start Guide
 
+### Launch VLM Server (one command)
+
+Run a persistent VLM server with smart Linux/macOS detection, optional vLLM, and audio transcription:
+
+```bash
+./serve.sh
+```
+
+The server starts on `http://localhost:8080`. Demos auto-use it when available.
+
 ### For Simple Testing (Recommended)
 
 If you just want to test VLM with your camera:

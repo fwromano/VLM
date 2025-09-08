@@ -16,6 +16,10 @@ import cv2
 import os
 import time
 from pathlib import Path
+import base64
+import urllib.request
+import urllib.error
+import urllib.parse
 
 class HybridVLMNode(Node):
     def __init__(self):
@@ -48,6 +52,12 @@ class HybridVLMNode(Node):
         self.get_logger().info(f"VLM script: {self.vlm_script_path}")
         self.get_logger().info(f"Analysis interval: {self.analysis_interval}s")
         self.get_logger().info(f"Current prompt: '{self.current_prompt}'")
+        
+        # Optional VLM server settings (if server is running)
+        self.vlm_server_url = os.environ.get('VLM_SERVER_URL', 'http://127.0.0.1:8080')
+        self.vlm_server_backend = os.environ.get('VLM_SERVER_BACKEND', None)
+        self.vlm_server_model = os.environ.get('VLM_SERVER_MODEL', None)
+        self.vlm_server_fast = os.environ.get('VLM_SERVER_FAST', '0') in ('1', 'true', 'TRUE')
     
     def prompt_callback(self, msg):
         """Topic callback to change the analysis prompt"""
@@ -85,7 +95,32 @@ class HybridVLMNode(Node):
             self.processing = False
     
     def process_with_vlm(self, image, prompt):
-        """Process image with VLM using conda environment"""
+        """Process image via server when available, else subprocess fallback"""
+        # Try VLM server first (base64 JSON form via application/x-www-form-urlencoded)
+        try:
+            ok, buf = cv2.imencode('.jpg', image, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+            if ok:
+                img_b64 = base64.b64encode(buf.tobytes()).decode('utf-8')
+                payload = {
+                    'image_base64': img_b64,
+                    'question': prompt,
+                }
+                if self.vlm_server_backend:
+                    payload['backend'] = self.vlm_server_backend
+                if self.vlm_server_model:
+                    payload['model'] = self.vlm_server_model
+                if self.vlm_server_fast:
+                    payload['fast'] = True
+                data = urllib.parse.urlencode(payload).encode('utf-8')
+                req = urllib.request.Request(self.vlm_server_url.rstrip('/') + '/v1/vision/analyze', data=data)
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    out = json.loads(resp.read().decode('utf-8'))
+                    if 'text' in out:
+                        return out['text']
+        except Exception as e:
+            self.get_logger().warn(f"VLM server unavailable, falling back: {e}")
+
+        # Fallback to subprocess in conda env
         try:
             # Save image to temporary file
             with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:

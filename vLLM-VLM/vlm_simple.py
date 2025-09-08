@@ -172,6 +172,43 @@ class SimpleVLM:
         Returns:
             Model's response
         """
+        # Try server first if configured
+        server_url = os.environ.get('VLM_SERVER_URL', '')
+        if server_url:
+            try:
+                # Convert to PIL
+                if isinstance(image_input, np.ndarray):
+                    arr = image_input
+                    if arr.dtype != np.uint8:
+                        arr = (arr * 255).astype(np.uint8)
+                    pil_img = Image.fromarray(cv2.cvtColor(arr, cv2.COLOR_BGR2RGB))
+                elif isinstance(image_input, Image.Image):
+                    pil_img = image_input.convert('RGB')
+                else:
+                    pil_img = Image.open(image_input).convert('RGB')
+                from io import BytesIO
+                buf = BytesIO()
+                pil_img.save(buf, format='JPEG', quality=90)
+                payload = {
+                    'image_base64': base64.b64encode(buf.getvalue()).decode('utf-8'),
+                    'question': question,
+                }
+                import urllib.request as _urlreq, urllib.parse as _urlparse, json as _json
+                if os.environ.get('VLM_SERVER_MODEL'):
+                    payload['model'] = os.environ['VLM_SERVER_MODEL']
+                if os.environ.get('VLM_SERVER_BACKEND'):
+                    payload['backend'] = os.environ['VLM_SERVER_BACKEND']
+                if os.environ.get('VLM_SERVER_FAST', '0') in ('1','true','TRUE'):
+                    payload['fast'] = True
+                data = _urlparse.urlencode(payload).encode('utf-8')
+                req = _urlreq.Request(server_url.rstrip('/') + '/v1/vision/analyze', data=data)
+                with _urlreq.urlopen(req, timeout=10) as resp:
+                    out = _json.loads(resp.read().decode('utf-8'))
+                    if 'text' in out:
+                        return out['text']
+            except Exception:
+                pass
+
         if not self.llm:
             raise RuntimeError("Model not loaded. Call load_model() first.")
         

@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLM Video Chat - Multi-Model</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.0.10/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Left Panel - Video */
+        .video-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #111111;
+            position: relative;
+        }
+        
+        .video-header {
+            padding: 20px;
+            background: #1a1a1a;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .model-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .model-selector select {
+            background: #2a2a2a;
+            color: #ffffff;
+            border: 1px solid #3a3a3a;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            min-width: 200px;
+        }
+        
+        .model-info {
+            font-size: 12px;
+            color: #888;
+            margin-left: 10px;
+        }
+        
+        .video-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: #000000;
+        }
+        
+        #videoCanvas {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            image-rendering: optimizeQuality;
+        }
+        
+        .status-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff00;
+        }
+        
+        .status-dot.processing {
+            background: #ffaa00;
+            animation: pulse 1s infinite;
+        }
+        
+        .status-dot.loading {
+            background: #00aaff;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Right Panel - Chat */
+        .chat-panel {
+            width: 450px;
+            display: flex;
+            flex-direction: column;
+            background: #1a1a1a;
+            border-left: 1px solid #2a2a2a;
+        }
+        
+        .chat-header {
+            padding: 20px;
+            background: #1a1a1a;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        
+        .chat-header h2 {
+            font-size: 20px;
+            font-weight: 500;
+        }
+        
+        /* Quick Prompts */
+        .quick-prompts {
+            padding: 15px 20px;
+            background: #151515;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .prompt-btn {
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .prompt-btn:hover {
+            background: #3a3a3a;
+            border-color: #4a4a4a;
+        }
+        
+        /* Chat Messages */
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .message {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+        
+        .message-sender {
+            font-weight: 600;
+            color: #00aaff;
+        }
+        
+        .message-sender.ai {
+            color: #00ff88;
+        }
+        
+        .message-model {
+            font-size: 12px;
+            color: #888;
+            background: #2a2a2a;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        
+        .message-time {
+            font-size: 12px;
+            color: #666;
+            margin-left: auto;
+        }
+        
+        .message-content {
+            background: #252525;
+            padding: 12px 16px;
+            border-radius: 8px;
+            line-height: 1.5;
+        }
+        
+        /* Frame container */
+        .frame-container {
+            margin-top: 8px;
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+        
+        .frame-container img {
+            border-radius: 6px;
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .frame-toggle {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .frame-container.collapsed img {
+            max-height: 60px;
+        }
+        
+        /* Streaming indicator */
+        .streaming-indicator {
+            display: inline-block;
+            margin-left: 8px;
+        }
+        
+        .streaming-indicator span {
+            display: inline-block;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #00ff88;
+            margin: 0 2px;
+            animation: streamDot 1.4s infinite;
+        }
+        
+        .streaming-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .streaming-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes streamDot {
+            0%, 60%, 100% { opacity: 0.3; }
+            30% { opacity: 1; }
+        }
+        
+        /* Input Area */
+        .input-area {
+            padding: 20px;
+            background: #1a1a1a;
+            border-top: 1px solid #2a2a2a;
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+        
+        #messageInput {
+            width: 100%;
+            background: #252525;
+            border: 1px solid #3a3a3a;
+            color: #ffffff;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: none;
+            max-height: 120px;
+            line-height: 1.4;
+        }
+        
+        #messageInput:focus {
+            outline: none;
+            border-color: #00aaff;
+        }
+        
+        .send-btn {
+            background: #00aaff;
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .send-btn:hover:not(:disabled) {
+            background: #0088cc;
+        }
+        
+        .send-btn:disabled {
+            background: #3a3a3a;
+            cursor: not-allowed;
+        }
+        
+        /* Markdown styles */
+        .message-content p {
+            margin: 0 0 10px 0;
+        }
+        
+        .message-content p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .message-content code {
+            background: #1a1a1a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 13px;
+        }
+        
+        .message-content pre {
+            background: #1a1a1a;
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        
+        .message-content pre code {
+            background: none;
+            padding: 0;
+        }
+        
+        .message-content ul, .message-content ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .message-content li {
+            margin: 4px 0;
+        }
+        
+        /* Loading overlay for model switching */
+        .model-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .model-loading-overlay.show {
+            display: flex;
+        }
+        
+        .model-loading-content {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .model-loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #3a3a3a;
+            border-top-color: #00aaff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Left Panel - Video -->
+        <div class="video-panel">
+            <div class="video-header">
+                <div>
+                    <h1>VLM Video Chat</h1>
+                    <div class="gpu-status">
+                        {% if gpu_available %}
+                            <span style="color: #00ff88;">GPU Active</span>
+                        {% else %}
+                            <span style="color: #ffaa00;">CPU Mode</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="model-selector">
+                    <label for="modelSelect">Model:</label>
+                    <select id="modelSelect">
+                        {% for key, model in models.items() %}
+                            <option value="{{ key }}" {% if key == default_model %}selected{% endif %}>
+                                {{ model.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <div class="model-info" id="modelInfo"></div>
+                </div>
+            </div>
+            
+            <div class="video-container">
+                <img id="videoCanvas" alt="Video feed">
+                <div class="status-indicator">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Ready</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Panel - Chat -->
+        <div class="chat-panel">
+            <div class="chat-header">
+                <h2>Chat</h2>
+            </div>
+            
+            <div class="quick-prompts">
+                <button class="prompt-btn" onclick="sendQuickPrompt('What do you see?')">
+                    What do you see?
+                </button>
+                <button class="prompt-btn" onclick="sendQuickPrompt('Describe the scene')">
+                    Describe the scene
+                </button>
+                <button class="prompt-btn" onclick="sendQuickPrompt('What objects are visible?')">
+                    What objects?
+                </button>
+                <button class="prompt-btn" onclick="sendQuickPrompt('Any text or signs?')">
+                    Any text?
+                </button>
+                <button class="prompt-btn" onclick="sendQuickPrompt('What colors do you see?')">
+                    What colors?
+                </button>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages"></div>
+            
+            <div class="input-area">
+                <div class="input-container">
+                    <div class="input-wrapper">
+                        <textarea 
+                            id="messageInput" 
+                            placeholder="Ask about what you see..."
+                            rows="1"
+                        ></textarea>
+                    </div>
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                        Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Model Loading Overlay -->
+    <div class="model-loading-overlay" id="modelLoadingOverlay">
+        <div class="model-loading-content">
+            <div class="model-loading-spinner"></div>
+            <h3>Loading Model</h3>
+            <p id="loadingModelName"></p>
+        </div>
+    </div>
+    
+    <script>
+        const socket = io();
+        let isProcessing = false;
+        let currentModel = '{{ default_model }}';
+        const models = {{ models | tojson }};
+        
+        // Update model info
+        function updateModelInfo() {
+            const modelKey = document.getElementById('modelSelect').value;
+            const model = models[modelKey];
+            document.getElementById('modelInfo').textContent = model.description || '';
+        }
+        
+        // Model switching
+        document.getElementById('modelSelect').addEventListener('change', (e) => {
+            const newModel = e.target.value;
+            if (newModel === currentModel) return;
+            
+            // Show loading overlay
+            document.getElementById('modelLoadingOverlay').classList.add('show');
+            document.getElementById('loadingModelName').textContent = models[newModel].name;
+            
+            socket.emit('switch_model', { model_key: newModel });
+        });
+        
+        // Socket events
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            updateModelInfo();
+        });
+        
+        socket.on('models_available', (data) => {
+            currentModel = data.current;
+            document.getElementById('modelSelect').value = currentModel;
+            updateModelInfo();
+        });
+        
+        socket.on('model_switched', (data) => {
+            currentModel = data.model_key;
+            document.getElementById('modelLoadingOverlay').classList.remove('show');
+            updateModelInfo();
+        });
+        
+        socket.on('video_frame', (data) => {
+            document.getElementById('videoCanvas').src = 'data:image/jpeg;base64,' + data.frame;
+        });
+        
+        socket.on('status_update', (data) => {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            
+            statusDot.classList.remove('processing', 'loading');
+            
+            switch(data.status) {
+                case 'processing':
+                    statusDot.classList.add('processing');
+                    statusText.textContent = 'Processing...';
+                    isProcessing = true;
+                    break;
+                case 'loading_model':
+                    statusDot.classList.add('loading');
+                    statusText.textContent = 'Loading Model...';
+                    break;
+                case 'ready':
+                    statusText.textContent = 'Ready';
+                    isProcessing = false;
+                    break;
+            }
+            
+            document.getElementById('sendBtn').disabled = isProcessing;
+        });
+        
+        // Chat message handling
+        socket.on('chat_message', (data) => {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="message-sender">${data.sender}</span>
+                    <span class="message-time">${data.timestamp}</span>
+                </div>
+                <div class="message-content">
+                    ${data.message}
+                    ${data.frame ? `
+                        <div class="frame-container" onclick="toggleFrame(this)">
+                            <img src="data:image/${data.frame_format};base64,${data.frame}" 
+                                 width="${data.frame_width}" height="${data.frame_height}">
+                            <div class="frame-toggle">Click to expand</div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+        
+        // Streaming handling
+        let streamingMessages = {};
+        
+        socket.on('stream_start', (data) => {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.id = `message-${data.conversation_id}`;
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="message-sender ai">AI</span>
+                    ${data.model ? `<span class="message-model">${data.model}</span>` : ''}
+                    <span class="message-time">${new Date().toLocaleTimeString()}</span>
+                </div>
+                <div class="message-content">
+                    <span class="streaming-content"></span>
+                    <span class="streaming-indicator">
+                        <span></span><span></span><span></span>
+                    </span>
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            streamingMessages[data.conversation_id] = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+        
+        socket.on('stream_token', (data) => {
+            const messageDiv = document.getElementById(`message-${data.conversation_id}`);
+            if (messageDiv) {
+                streamingMessages[data.conversation_id] += data.token;
+                const contentSpan = messageDiv.querySelector('.streaming-content');
+                contentSpan.innerHTML = marked.parse(streamingMessages[data.conversation_id]);
+                
+                const chatMessages = document.getElementById('chatMessages');
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        });
+        
+        socket.on('stream_complete', (data) => {
+            const messageDiv = document.getElementById(`message-${data.conversation_id}`);
+            if (messageDiv) {
+                const indicator = messageDiv.querySelector('.streaming-indicator');
+                if (indicator) indicator.remove();
+                delete streamingMessages[data.conversation_id];
+            }
+        });
+        
+        socket.on('stream_error', (data) => {
+            const messageDiv = document.getElementById(`message-${data.conversation_id}`);
+            if (messageDiv) {
+                messageDiv.querySelector('.message-content').innerHTML = 
+                    `<span style="color: #ff6666;">Error: ${data.error}</span>`;
+                delete streamingMessages[data.conversation_id];
+            }
+        });
+        
+        // Send message
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message && !isProcessing) {
+                socket.emit('send_message', { 
+                    message: message,
+                    model_key: currentModel 
+                });
+                input.value = '';
+                input.style.height = 'auto';
+            }
+        }
+        
+        function sendQuickPrompt(prompt) {
+            if (!isProcessing) {
+                socket.emit('send_message', { 
+                    message: prompt,
+                    model_key: currentModel 
+                });
+            }
+        }
+        
+        // Auto-resize textarea
+        const messageInput = document.getElementById('messageInput');
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+        
+        // Enter to send, Ctrl+Enter for new line
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.ctrlKey && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        // Toggle frame
+        function toggleFrame(container) {
+            container.classList.toggle('collapsed');
+            const toggle = container.querySelector('.frame-toggle');
+            toggle.textContent = container.classList.contains('collapsed') ? 
+                'Click to expand' : 'Click to collapse';
+        }
+        
+        // Initialize
+        updateModelInfo();
+    </script>
+</body>
+</html>

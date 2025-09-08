@@ -34,6 +34,12 @@ try:
     from flask_socketio import SocketIO, emit
     from vllm import LLM, SamplingParams
     from PIL import Image
+    import json
+    import io
+    import base64 as _b64
+    import urllib.request as _urlreq
+    import urllib.error as _urlerr
+    import urllib.parse as _urlparse
 except ImportError as e:
     print(f"Missing library: {e}")
     print("Install with: pip install flask flask-socketio vllm")
@@ -150,7 +156,35 @@ class vLLMProcessor:
         return base64.b64encode(buffer.getvalue()).decode('utf-8')
     
     def process_image(self, image: np.ndarray, question: str) -> str:
-        """Process image with vLLM VLM"""
+        """Process image (server-first, then local vLLM fallback)"""
+        # Try server first
+        server_url = os.environ.get('VLM_SERVER_URL', 'http://127.0.0.1:8080')
+        if server_url:
+            try:
+                if image.dtype != np.uint8:
+                    image = (image * 255).astype(np.uint8)
+                pil_image = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+                buf = io.BytesIO()
+                pil_image.save(buf, format='JPEG', quality=90)
+                payload = {
+                    'image_base64': _b64.b64encode(buf.getvalue()).decode('utf-8'),
+                    'question': question,
+                }
+                if os.environ.get('VLM_SERVER_MODEL'):
+                    payload['model'] = os.environ['VLM_SERVER_MODEL']
+                if os.environ.get('VLM_SERVER_BACKEND'):
+                    payload['backend'] = os.environ['VLM_SERVER_BACKEND']
+                if os.environ.get('VLM_SERVER_FAST', '0') in ('1','true','TRUE'):
+                    payload['fast'] = True
+                data = _urlparse.urlencode(payload).encode('utf-8')
+                req = _urlreq.Request(server_url.rstrip('/') + '/v1/vision/analyze', data=data)
+                with _urlreq.urlopen(req, timeout=10) as resp:
+                    out = json.loads(resp.read().decode('utf-8'))
+                    if 'text' in out:
+                        return out['text']
+            except Exception:
+                pass
+
         if not self.is_loaded:
             return "Model not loaded"
         

@@ -34,6 +34,11 @@ try:
     from flask_socketio import SocketIO, emit
     from transformers import Gemma3ForConditionalGeneration, AutoProcessor
     from PIL import Image
+    import json
+    import base64 as _b64
+    import urllib.request as _urlreq
+    import urllib.error as _urlerr
+    import urllib.parse as _urlparse
 except ImportError as e:
     print(f"Missing library: {e}")
     print("Install with: pip install flask flask-socketio")
@@ -154,7 +159,34 @@ class VLMProcessor:
             return False
     
     def process_image(self, image: np.ndarray, question: str) -> str:
-        """Process image with VLM"""
+        """Process image with VLM (server-first, then local fallback)"""
+        # Try server first if configured
+        server_url = os.environ.get('VLM_SERVER_URL', 'http://127.0.0.1:8080')
+        use_server = bool(server_url)
+        if use_server:
+            try:
+                ok, buf = cv2.imencode('.jpg', image, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+                if ok:
+                    payload = {
+                        'image_base64': _b64.b64encode(buf.tobytes()).decode('utf-8'),
+                        'question': question,
+                    }
+                    if os.environ.get('VLM_SERVER_MODEL'):
+                        payload['model'] = os.environ['VLM_SERVER_MODEL']
+                    if os.environ.get('VLM_SERVER_BACKEND'):
+                        payload['backend'] = os.environ['VLM_SERVER_BACKEND']
+                    if os.environ.get('VLM_SERVER_FAST', '0') in ('1','true','TRUE'):
+                        payload['fast'] = True
+                    data = _urlparse.urlencode(payload).encode('utf-8')
+                    req = _urlreq.Request(server_url.rstrip('/') + '/v1/vision/analyze', data=data)
+                    with _urlreq.urlopen(req, timeout=10) as resp:
+                        out = json.loads(resp.read().decode('utf-8'))
+                        if 'text' in out:
+                            return out['text']
+            except Exception:
+                pass
+
+        # Local fallback
         if not self.is_loaded or self.model is None:
             return "Model not loaded or unavailable"
         
@@ -455,11 +487,24 @@ class VLMWebApp:
     
     def run(self):
         """Main application loop"""
-        # Load 4B model (only model available)
-        model_id = "google/gemma-3-4b-it"
-        if not self.processor.load_model(model_id):
-            print("Failed to load Gemma 3 4B model")
-            return
+        # If a VLM server is available, skip local model loading
+        server_url = os.environ.get('VLM_SERVER_URL', 'http://127.0.0.1:8080').rstrip('/')
+        server_ok = False
+        try:
+            req = _urlreq.Request(server_url + '/v1/health')
+            with _urlreq.urlopen(req, timeout=1.5) as resp:
+                server_ok = resp.status == 200
+        except Exception:
+            server_ok = False
+
+        if server_ok:
+            print(f"Using VLM server at {server_url}; skipping local model load")
+        else:
+            # Load 4B model locally if server not available
+            model_id = "google/gemma-3-4b-it"
+            if not self.processor.load_model(model_id):
+                print("Failed to load Gemma 3 4B model")
+                return
         
         # Setup camera
         if not self.setup_camera():

@@ -1,5 +1,12 @@
 {
-  "MODEL_ID": "google/gemma-3-4b-it",
+  "MODELS": {
+    "gemma-3n-e4b": {
+      "id": "google/gemma-3n-E4B-it",
+      "name": "Gemma 3n E4B",
+      "description": "Google's multimodal model supporting text, image, video, and audio"
+    }
+  },
+  "DEFAULT_MODEL": "gemma-3n-e4b",
   "CAMERA_WIDTH": 1280,
   "CAMERA_HEIGHT": 720,
   "CAMERA_FPS": 30,
